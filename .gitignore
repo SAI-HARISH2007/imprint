@@ -1,0 +1,11 @@
+# local only
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+node_modules/
+phase1/images/
+*.safetensors
+*.ckpt
+.DS_Store

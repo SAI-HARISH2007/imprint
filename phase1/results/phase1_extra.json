@@ -1,0 +1,26 @@
+{
+  "n_images": 24,
+  "hard_transform_decode_rate": {
+    "hflip": 1.0,
+    "rotate_5deg": 0.0,
+    "grayscale": 1.0,
+    "upscale_2x_then_q70": 1.0
+  },
+  "double_mark_outcome": {
+    "second_payload_wins": 24,
+    "first_payload_survives": 0,
+    "neither": 0
+  },
+  "remarked_copy_phash_dist_to_original": {
+    "median": 2.0,
+    "max": 6
+  },
+  "edit_paste_10pct_dist": {
+    "min": 30,
+    "median": 50.0
+  },
+  "edit_paste_25pct_dist": {
+    "min": 54,
+    "median": 75.0
+  }
+}

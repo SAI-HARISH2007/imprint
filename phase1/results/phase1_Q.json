@@ -1,0 +1,140 @@
+{
+  "model": "Q",
+  "payload_bits": 61,
+  "n_images": 24,
+  "summary": {
+    "identity": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 0,
+      "byte_hash_survives": 1.0
+    },
+    "png_to_jpeg_q95": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "jpeg_q90": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "jpeg_q70": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "jpeg_q50": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 1.0,
+      "max_phash_dist": 4,
+      "byte_hash_survives": 0.0
+    },
+    "jpeg_q30": {
+      "decode_rate": 0.9583333333333334,
+      "median_phash_dist": 2.0,
+      "max_phash_dist": 6,
+      "byte_hash_survives": 0.0
+    },
+    "jpeg_q20": {
+      "decode_rate": 0.875,
+      "median_phash_dist": 2.0,
+      "max_phash_dist": 8,
+      "byte_hash_survives": 0.0
+    },
+    "resize_75": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "resize_50": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "resize_25": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "messenger": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "screenshot_like": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 2.0,
+      "max_phash_dist": 8,
+      "byte_hash_survives": 0.0
+    },
+    "crop_5": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 35.0,
+      "max_phash_dist": 50,
+      "byte_hash_survives": 0.0
+    },
+    "crop_15": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 96.0,
+      "max_phash_dist": 132,
+      "byte_hash_survives": 0.0
+    },
+    "crop_30": {
+      "decode_rate": 0.0,
+      "median_phash_dist": 126.0,
+      "max_phash_dist": 150,
+      "byte_hash_survives": 0.0
+    },
+    "brightness_p15": {
+      "decode_rate": 0.9583333333333334,
+      "median_phash_dist": 2.0,
+      "max_phash_dist": 12,
+      "byte_hash_survives": 0.0
+    },
+    "brightness_m15": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 4,
+      "byte_hash_survives": 0.0
+    },
+    "contrast_p15": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 2.0,
+      "max_phash_dist": 6,
+      "byte_hash_survives": 0.0
+    },
+    "blur_light": {
+      "decode_rate": 1.0,
+      "median_phash_dist": 0.0,
+      "max_phash_dist": 2,
+      "byte_hash_survives": 0.0
+    },
+    "edit_paste_10pct": {
+      "decode_rate": 0.2916666666666667,
+      "median_phash_dist": 50.0,
+      "max_phash_dist": 92,
+      "byte_hash_survives": 0.0
+    },
+    "edit_paste_25pct": {
+      "decode_rate": 0.0,
+      "median_phash_dist": 76.0,
+      "max_phash_dist": 110,
+      "byte_hash_survives": 0.0
+    }
+  },
+  "normal_sharing_mean_decode_rate": 1.0,
+  "unrelated_phash_dist": {
+    "min": 102,
+    "median": 128.0,
+    "n_pairs": 276
+  },
+  "false_watermark_on_unmarked": "0/24"
+}
