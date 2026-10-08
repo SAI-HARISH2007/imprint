@@ -10,3 +10,5 @@ phase1/images/
 *.ckpt
 .DS_Store
 .pytest_cache/
+contracts/out/
+contracts/cache/
