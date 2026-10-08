@@ -1,0 +1,237 @@
+{
+ "n_images": 24,
+ "rows": [
+  {
+   "key": "identity",
+   "label": "No change",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 0
+  },
+  {
+   "key": "png_to_jpeg_q95",
+   "label": "PNG to JPEG q95",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "jpeg_q90",
+   "label": "JPEG q90",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "jpeg_q70",
+   "label": "JPEG q70",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "jpeg_q50",
+   "label": "JPEG q50",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 1.0,
+   "maxDist": 4
+  },
+  {
+   "key": "jpeg_q30",
+   "label": "JPEG q30",
+   "group": "sharing",
+   "decode": 0.9583333333333334,
+   "medianDist": 2.0,
+   "maxDist": 6
+  },
+  {
+   "key": "jpeg_q20",
+   "label": "JPEG q20",
+   "group": "sharing",
+   "decode": 0.875,
+   "medianDist": 2.0,
+   "maxDist": 8
+  },
+  {
+   "key": "resize_75",
+   "label": "Resize to 75%",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "resize_50",
+   "label": "Resize to 50%",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "resize_25",
+   "label": "Resize to 25%",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "messenger",
+   "label": "Messenger-style (cap 1600px, q70)",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "screenshot_like",
+   "label": "Screenshot-like rescale",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 2.0,
+   "maxDist": 8
+  },
+  {
+   "key": "crop_5",
+   "label": "Crop 5%",
+   "group": "edit",
+   "decode": 1.0,
+   "medianDist": 35.0,
+   "maxDist": 50
+  },
+  {
+   "key": "crop_15",
+   "label": "Crop 15%",
+   "group": "edit",
+   "decode": 1.0,
+   "medianDist": 96.0,
+   "maxDist": 132
+  },
+  {
+   "key": "crop_30",
+   "label": "Crop 30%",
+   "group": "edit",
+   "decode": 0.0,
+   "medianDist": 126.0,
+   "maxDist": 150
+  },
+  {
+   "key": "brightness_p15",
+   "label": "Brightness +15%",
+   "group": "sharing",
+   "decode": 0.9583333333333334,
+   "medianDist": 2.0,
+   "maxDist": 12
+  },
+  {
+   "key": "brightness_m15",
+   "label": "Brightness -15%",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 4
+  },
+  {
+   "key": "contrast_p15",
+   "label": "Contrast +15%",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 2.0,
+   "maxDist": 6
+  },
+  {
+   "key": "blur_light",
+   "label": "Light blur",
+   "group": "sharing",
+   "decode": 1.0,
+   "medianDist": 0.0,
+   "maxDist": 2
+  },
+  {
+   "key": "edit_paste_10pct",
+   "label": "Foreign content pasted over 10%",
+   "group": "edit",
+   "decode": 0.2916666666666667,
+   "medianDist": 50.0,
+   "maxDist": 92
+  },
+  {
+   "key": "edit_paste_25pct",
+   "label": "Foreign content pasted over 25%",
+   "group": "edit",
+   "decode": 0.0,
+   "medianDist": 76.0,
+   "maxDist": 110
+  }
+ ],
+ "hard": [
+  {
+   "label": "Horizontal flip",
+   "decode": 1.0
+  },
+  {
+   "label": "Rotate 5 degrees",
+   "decode": 0.0
+  },
+  {
+   "label": "Grayscale",
+   "decode": 1.0
+  },
+  {
+   "label": "Upscale 2x then JPEG q70",
+   "decode": 1.0
+  }
+ ],
+ "unrelated": {
+  "min": 102,
+  "median": 128.0,
+  "n_pairs": 276
+ },
+ "falseRead": "0/24",
+ "doubleMark": {
+  "second_payload_wins": 24,
+  "first_payload_survives": 0,
+  "neither": 0
+ },
+ "remarkedDist": {
+  "median": 2.0,
+  "max": 6
+ },
+ "edit10": {
+  "min": 30,
+  "median": 50.0
+ },
+ "edit25": {
+  "min": 54,
+  "median": 75.0
+ },
+ "combos24": {
+  "resize50_q50": "22/24",
+  "resize50_q70": "24/24",
+  "resize75_q50": "24/24"
+ },
+ "combos12": {
+  "small_1024": {
+   "resize50_q70": "12/12",
+   "resize50_q50": "12/12",
+   "resize25_q60": "9/12",
+   "messenger_1600_q70": "12/12",
+   "messenger_1280_q60": "12/12",
+   "social_1080_q75": "12/12"
+  },
+  "large_3000": {
+   "resize50_q70": "12/12",
+   "resize50_q50": "12/12",
+   "resize25_q60": "12/12",
+   "messenger_1600_q70": "12/12",
+   "messenger_1280_q60": "12/12",
+   "social_1080_q75": "12/12"
+  }
+ }
+}

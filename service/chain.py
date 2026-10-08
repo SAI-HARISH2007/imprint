@@ -133,7 +133,8 @@ def tx_hash_for(rec: Record) -> str:
     if rec.tx_hash:
         return rec.tx_hash
     if rec.watermark_id in _tx_cache:
-        return _tx_cache[rec.watermark_id]
+        rec.tx_hash = _tx_cache[rec.watermark_id]
+        return rec.tx_hash
     try:
         logs = contract().events.Registered().get_logs(
             from_block=rec.block, to_block=rec.block,
