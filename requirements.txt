@@ -1,3 +1,4 @@
+cryptography
 fastapi==0.143.0
 httpx==0.28.1
 imagehash==4.3.2
@@ -9,3 +10,4 @@ python-multipart==0.0.32
 torch==2.14.1
 trustmark==0.9.2
 uvicorn==0.54.0
+web3==8.0.0

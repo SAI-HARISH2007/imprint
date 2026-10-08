@@ -21,6 +21,7 @@ contract ImprintRegistry is EIP712 {
     struct Record {
         address signer;      // Ethereum address, or an ID derived from the passkey public key
         uint64 timestamp;    // block.timestamp at registration
+        uint64 blockNumber;  // block of registration, so the transaction can be found with a one-block log query
         bytes32 fingerprint; // 256-bit perceptual hash of the marked image
     }
 
@@ -28,6 +29,7 @@ contract ImprintRegistry is EIP712 {
         keccak256("Register(bytes32 watermarkId,bytes32 fingerprint)");
 
     mapping(bytes32 => Record) private _records;
+    bytes32[] private _ids; // every registered ID, in order, so anyone can enumerate the registry with plain calls
 
     event Registered(
         bytes32 indexed watermarkId, address indexed signer, bytes32 fingerprint, uint64 timestamp
@@ -81,6 +83,29 @@ contract ImprintRegistry is EIP712 {
         return _records[watermarkId].timestamp != 0;
     }
 
+    /// @notice Number of registrations.
+    function count() external view returns (uint256) {
+        return _ids.length;
+    }
+
+    /// @notice A page of registrations in registration order. No indexer or event scan needed.
+    function recordsPage(uint256 offset, uint256 limit)
+        external
+        view
+        returns (bytes32[] memory ids, Record[] memory recs)
+    {
+        uint256 n = _ids.length;
+        if (offset >= n) return (new bytes32[](0), new Record[](0));
+        uint256 end = offset + limit;
+        if (end > n) end = n;
+        ids = new bytes32[](end - offset);
+        recs = new Record[](end - offset);
+        for (uint256 i = offset; i < end; i++) {
+            ids[i - offset] = _ids[i];
+            recs[i - offset] = _records[_ids[i]];
+        }
+    }
+
     /// @notice The 32-byte value a signer must sign (EIP-712 digest, bound to this chain and contract).
     function challengeFor(bytes32 watermarkId, bytes32 fingerprint) public view returns (bytes32) {
         return _hashTypedDataV4(keccak256(abi.encode(REGISTER_TYPEHASH, watermarkId, fingerprint)));
@@ -97,7 +122,8 @@ contract ImprintRegistry is EIP712 {
         if (watermarkId == bytes32(0)) revert ZeroId();
         if (_records[watermarkId].timestamp != 0) revert AlreadyRegistered(watermarkId);
         uint64 ts = uint64(block.timestamp);
-        _records[watermarkId] = Record(signer, ts, fingerprint);
+        _records[watermarkId] = Record(signer, ts, uint64(block.number), fingerprint);
+        _ids.push(watermarkId);
         emit Registered(watermarkId, signer, fingerprint, ts);
     }
 }

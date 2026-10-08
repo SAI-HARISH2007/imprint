@@ -2,10 +2,15 @@
   "network": "Monad Testnet",
   "chainId": 10143,
   "contract": "ImprintRegistry",
-  "address": "0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664",
-  "deployTx": "0xb4523bc15cd0f63f08b84ec397e11bb110a8392878fbd7140e2174fdb539c323",
-  "block": 69289882,
+  "address": "0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c",
+  "deployTx": "0xfe077cf3dcecc0727ca570d1dfc80dfc1b605c03bd16ad82e78a536636620c35",
+  "block": 69296432,
   "deployer": "0x8BaeBeA2E0De504d878b227a36672B7d0Ff2015D",
-  "explorer": "https://testnet.monadvision.com/address/0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664",
-  "sourceVerified": "Sourcify exact_match (sourcify-api-monad.blockvision.org)"
+  "explorer": "https://testnet.monadvision.com/address/0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c",
+  "sourceVerified": "Sourcify exact_match (sourcify-api-monad.blockvision.org)",
+  "supersedes": {
+    "address": "0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664",
+    "deployTx": "0xb4523bc15cd0f63f08b84ec397e11bb110a8392878fbd7140e2174fdb539c323",
+    "note": "First deployment, no registrations. Replaced because the new version lets anyone list every registration with plain calls (count, recordsPage) and records the block number."
+  }
 }

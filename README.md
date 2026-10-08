@@ -8,7 +8,7 @@ Status: work in progress.
 
 - `phase1/`: does an invisible watermark survive ordinary sharing? Yes, on our simulated tests.
 - `service/`: image service (mark, check) and the verdict logic, with tests.
-- `contracts/`: `ImprintRegistry`, the public record. Deployed on Monad testnet at `0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664` (chain 10143), source verified. See `deployments/monad-testnet.json`.
+- `contracts/`: `ImprintRegistry`, the public record. Deployed on Monad testnet at `0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c` (chain 10143), source verified. See `deployments/monad-testnet.json`.
 
 ## Phase 1
 

@@ -5,6 +5,7 @@ Nothing here stores images. The functions take bytes and return values.
 import base64
 import io
 import secrets
+import threading
 from functools import lru_cache
 
 import imagehash
@@ -13,6 +14,9 @@ from trustmark import TrustMark
 
 HASH_SIZE = 16          # 16x16 pHash = 256 bits, 64 hex chars, fits a bytes32
 MAX_PIXELS = 25_000_000
+
+
+TM_LOCK = threading.RLock()  # one model, one caller at a time
 
 
 class BadImage(ValueError):
@@ -57,7 +61,8 @@ def mark(data: bytes) -> dict:
     """Embed a fresh random ID. Returns the marked PNG (base64), the ID, and the marked image's fingerprint."""
     img = load_image(data)
     bits = "".join(secrets.choice("01") for _ in range(payload_bits()))
-    marked = _tm().encode(img, bits, MODE="binary").convert("RGB")
+    with TM_LOCK:
+        marked = _tm().encode(img, bits, MODE="binary").convert("RGB")
     buf = io.BytesIO()
     marked.save(buf, "PNG")
     return {
@@ -73,7 +78,8 @@ def read(data: bytes) -> dict:
     """Try to read the hidden ID and fingerprint the image as it looks now."""
     img = load_image(data)
     try:
-        secret, present, _ = _tm().decode(img, MODE="binary")
+        with TM_LOCK:
+            secret, present, _ = _tm().decode(img, MODE="binary")
     except Exception:
         secret, present = "", False
     present = bool(present) and bool(secret)

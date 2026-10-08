@@ -74,6 +74,7 @@ contract ImprintRegistryTest is Test {
         assertEq(r.signer, alice);
         assertEq(r.fingerprint, FP);
         assertEq(r.timestamp, block.timestamp);
+        assertEq(r.blockNumber, block.number);
         assertTrue(reg.exists(ID));
     }
 
@@ -147,6 +148,40 @@ contract ImprintRegistryTest is Test {
         ImprintRegistry.Record memory r = reg.recordOf(ID);
         assertEq(r.timestamp, 0);
         assertEq(r.signer, address(0));
+    }
+
+    function test_enumerateRegistryWithPlainCalls() public {
+        assertEq(reg.count(), 0);
+        for (uint256 i = 1; i <= 5; i++) {
+            bytes32 id = bytes32(i);
+            bytes32 fp = keccak256(abi.encode(i));
+            reg.registerSigned(id, fp, alice, _sign(alicePk, reg, id, fp));
+            vm.roll(block.number + 1);
+        }
+        assertEq(reg.count(), 5);
+
+        (bytes32[] memory ids, ImprintRegistry.Record[] memory recs) = reg.recordsPage(1, 3);
+        assertEq(ids.length, 3);
+        assertEq(ids[0], bytes32(uint256(2)));
+        assertEq(ids[2], bytes32(uint256(4)));
+        assertEq(recs[0].fingerprint, keccak256(abi.encode(uint256(2))));
+        assertEq(recs[0].signer, alice);
+        assertEq(recs[1].blockNumber, recs[0].blockNumber + 1);
+
+        // a page that runs past the end is clipped, and an offset past the end is empty
+        (ids,) = reg.recordsPage(3, 100);
+        assertEq(ids.length, 2);
+        (ids, recs) = reg.recordsPage(5, 10);
+        assertEq(ids.length, 0);
+        assertEq(recs.length, 0);
+    }
+
+    function test_failedRegistrationDoesNotChangeCount() public {
+        reg.registerSigned(ID, FP, alice, _sign(alicePk, reg, ID, FP));
+        bytes memory sig = _sign(bobPk, reg, ID, FP);
+        vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.AlreadyRegistered.selector, ID));
+        reg.registerSigned(ID, FP, bob, sig);
+        assertEq(reg.count(), 1);
     }
 
     function testFuzz_eachIdRegistersOnce(bytes32 id, bytes32 fp) public {

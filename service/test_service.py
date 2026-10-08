@@ -52,6 +52,16 @@ def test_not_found_notes_unregistered_mark():
     assert out["verdict"] == "not_found" and "not in this registry" in out["message"]
 
 
+def test_disputed_when_an_earlier_lookalike_exists():
+    first = rec("0x1", FP_A, signer="0xalice", ts=1)
+    squat = rec("0x2", FP_NEAR, signer="0xmallory", ts=5)
+    out = verdict.decide(True, "0x2", FP_NEAR, squat, [first, squat])
+    assert out["verdict"] == "disputed" and out["earlier"] is first
+    # the original is not disputed by a later copy
+    out2 = verdict.decide(True, "0x1", FP_A, first, [first, squat])
+    assert out2["verdict"] == "verified"
+
+
 def test_near_duplicate_blocks_squatting():
     r = rec("0x1", FP_A)
     assert verdict.find_near_duplicate(FP_NEAR, [r])[0] is r
