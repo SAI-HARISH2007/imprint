@@ -4,7 +4,11 @@ Register an image once. A re-compressed, resized or screenshotted copy still pro
 
 Built for the Monad Metropolis hackathon (Track 4: Trust, Identity and AI Infrastructure).
 
-Status: work in progress. Phase 1 (does an invisible watermark survive ordinary sharing?) is done: see `phase1/`.
+Status: work in progress.
+
+- `phase1/`: does an invisible watermark survive ordinary sharing? Yes, on our simulated tests.
+- `service/`: image service (mark, check) and the verdict logic, with tests.
+- `contracts/`: `ImprintRegistry`, the public record. Deployed on Monad testnet at `0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664` (chain 10143), source verified. See `deployments/monad-testnet.json`.
 
 ## Phase 1
 

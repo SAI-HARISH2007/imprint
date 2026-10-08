@@ -1,0 +1,11 @@
+{
+  "network": "Monad Testnet",
+  "chainId": 10143,
+  "contract": "ImprintRegistry",
+  "address": "0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664",
+  "deployTx": "0xb4523bc15cd0f63f08b84ec397e11bb110a8392878fbd7140e2174fdb539c323",
+  "block": 69289882,
+  "deployer": "0x8BaeBeA2E0De504d878b227a36672B7d0Ff2015D",
+  "explorer": "https://testnet.monadvision.com/address/0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664",
+  "sourceVerified": "Sourcify exact_match (sourcify-api-monad.blockvision.org)"
+}
