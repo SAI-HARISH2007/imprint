@@ -199,8 +199,15 @@ export default function RegisterPage() {
               </button>
             </div>
           </div>
+          {!(marked.self_test.png && marked.self_test.jpeg70) && (
+            <p className="rounded-xl bg-warnbg p-4 text-sm text-warn">
+              This image is hard to mark: the hidden ID did not read back reliably after a test copy. It is registered,
+              but copies will mostly be matched by how they look, not by the hidden ID.
+            </p>
+          )}
           <p className="text-xs text-ink2">
-            Imprint did not keep your image. Only the ID, a fingerprint of how it looks, the signer, and the time are
+            Share and test the <span className="text-ink">downloaded marked image</span>, not your original file: only
+            the marked one carries the hidden ID. Imprint did not keep your image. Only the ID, a fingerprint of how it looks, the signer, and the time are
             on Monad.
           </p>
         </section>

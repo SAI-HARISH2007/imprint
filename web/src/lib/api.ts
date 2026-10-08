@@ -30,6 +30,8 @@ export type MarkResult = {
   fingerprint: string;
   width: number;
   height: number;
+  strength: number;
+  self_test: { png: boolean; jpeg70: boolean };
   image_png_base64: string;
 };
 
@@ -120,7 +122,7 @@ export const api = {
     fetch(`${API}/verify`, { method: "POST", body: form(file, name) }).then((r) => handle<VerifyResult>(r)),
   stress: (file: Blob, name: string, other?: Blob) =>
     fetch(`${API}/stress`, { method: "POST", body: form(file, name, other ? { other } : undefined) }).then((r) =>
-      handle<{ results: StressRow[] }>(r),
+      handle<{ results: StressRow[]; baseline: { mark_found: boolean; registered: boolean } }>(r),
     ),
 };
 

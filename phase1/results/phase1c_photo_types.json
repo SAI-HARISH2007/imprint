@@ -1,0 +1,32 @@
+{
+  "baseline 1024x768": {
+    "png": "10/10",
+    "jpeg90": "10/10",
+    "jpeg70": "10/10"
+  },
+  "portrait 768x1024": {
+    "png": "10/10",
+    "jpeg90": "10/10",
+    "jpeg70": "10/10"
+  },
+  "phone 4032x3024": {
+    "png": "10/10",
+    "jpeg90": "10/10",
+    "jpeg70": "10/10"
+  },
+  "phone portrait 3024x4032": {
+    "png": "10/10",
+    "jpeg90": "10/10",
+    "jpeg70": "10/10"
+  },
+  "low light (dark+noise)": {
+    "png": "10/10",
+    "jpeg90": "10/10",
+    "jpeg70": "10/10"
+  },
+  "grayscale-ish paper (desaturated)": {
+    "png": "10/10",
+    "jpeg90": "10/10",
+    "jpeg70": "10/10"
+  }
+}

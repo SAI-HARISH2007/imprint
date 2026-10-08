@@ -57,12 +57,41 @@ def distance(a: str, b: str) -> int:
     return int(imagehash.hex_to_hash(a) - imagehash.hex_to_hash(b))
 
 
+STRENGTHS = (1.0, 1.5, 2.0)  # watermark strength tried in order; higher is sturdier but more visible
+
+
+def _jpeg70(img: Image.Image) -> Image.Image:
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=70)
+    buf.seek(0)
+    return Image.open(buf).convert("RGB")
+
+
+def _reads_back(img: Image.Image, bits: str) -> bool:
+    try:
+        secret, present, _ = _tm().decode(img, MODE="binary")
+    except Exception:
+        return False
+    return bool(present) and secret == bits
+
+
 def mark(data: bytes) -> dict:
-    """Embed a fresh random ID. Returns the marked PNG (base64), the ID, and the marked image's fingerprint."""
+    """Embed a fresh random ID and prove it reads back.
+
+    After embedding, the pristine image and a JPEG q70 copy are both decoded. If either fails, the
+    strength is raised and the embedding repeated. The result reports what the self-test found, so a
+    photo that cannot carry a reliable mark is flagged instead of registered silently.
+    """
     img = load_image(data)
     bits = "".join(secrets.choice("01") for _ in range(payload_bits()))
-    with TM_LOCK:
-        marked = _tm().encode(img, bits, MODE="binary").convert("RGB")
+    marked, strength, png_ok, jpeg_ok = None, STRENGTHS[0], False, False
+    for strength in STRENGTHS:
+        with TM_LOCK:
+            marked = _tm().encode(img, bits, MODE="binary", WM_STRENGTH=strength).convert("RGB")
+            png_ok = _reads_back(marked, bits)
+            jpeg_ok = png_ok and _reads_back(_jpeg70(marked), bits)
+        if png_ok and jpeg_ok:
+            break
     buf = io.BytesIO()
     marked.save(buf, "PNG")
     return {
@@ -70,6 +99,8 @@ def mark(data: bytes) -> dict:
         "fingerprint": fingerprint(marked),
         "width": marked.width,
         "height": marked.height,
+        "strength": strength,
+        "self_test": {"png": png_ok, "jpeg70": jpeg_ok},
         "image_png_base64": base64.b64encode(buf.getvalue()).decode(),
     }
 

@@ -191,6 +191,11 @@ def stress_run(file: UploadFile = File(...), other: UploadFile | None = File(Non
     data = _read_upload(file)
     donor = _read_upload(other) if other is not None else None
     try:
-        return {"results": stress.run(data, donor)}
+        base = core.read(data)  # does the file you dropped actually carry a mark?
+        rec = chain.lookup(base["watermark_id"]) if base["watermark_present"] else None
+        return {
+            "baseline": {"mark_found": base["watermark_present"], "registered": rec is not None},
+            "results": stress.run(data, donor),
+        }
     except core.BadImage as e:
         raise HTTPException(400, str(e))

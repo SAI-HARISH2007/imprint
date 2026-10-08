@@ -28,6 +28,7 @@ const GROUPS: { key: StressRow["group"]; title: string; blurb: string }[] = [
 export default function StressPage() {
   const [source, setSource] = useState<{ file: File; url: string } | null>(null);
   const [rows, setRows] = useState<StressRow[] | null>(null);
+  const [baseline, setBaseline] = useState<{ mark_found: boolean; registered: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasLast, setHasLast] = useState(false);
@@ -39,10 +40,13 @@ export default function StressPage() {
     setBusy(true);
     setError(null);
     setRows(null);
+    setBaseline(null);
     try {
       // a real, unrelated photo for the "different image" and "copied mark" rows
       const donor = await fetch("/demo/demo-2-unregistered.jpg").then((r) => (r.ok ? r.blob() : undefined)).catch(() => undefined);
-      setRows((await api.stress(file, file.name, donor)).results);
+      const out = await api.stress(file, file.name, donor);
+      setBaseline(out.baseline);
+      setRows(out.results);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -104,6 +108,22 @@ export default function StressPage() {
       )}
 
       {error && <p className="rise max-w-3xl rounded-xl bg-badbg p-4 text-sm text-bad">{error}</p>}
+
+      {rows && source && baseline && !baseline.mark_found && (
+        <div className="rise max-w-3xl rounded-2xl border border-line bg-warnbg p-5 text-sm text-warn">
+          <p className="font-medium">This file does not carry an Imprint mark.</p>
+          <p className="mt-1 text-ink">
+            Most likely it is the original image, not the marked copy you downloaded after registering. Every row below
+            can then only be matched by how the picture looks, never by the hidden ID. For a real test, go back, download
+            the marked image from the Register page, and drop that file here.
+          </p>
+        </div>
+      )}
+      {rows && source && baseline && baseline.mark_found && !baseline.registered && (
+        <div className="rise max-w-3xl rounded-2xl border border-line bg-warnbg p-5 text-sm text-warn">
+          <p className="font-medium">This image has a mark, but it is not in this registry.</p>
+        </div>
+      )}
 
       {rows && source && (
         <div className="rise space-y-10">
