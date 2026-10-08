@@ -9,3 +9,4 @@ phase1/images/
 *.safetensors
 *.ckpt
 .DS_Store
+.pytest_cache/
