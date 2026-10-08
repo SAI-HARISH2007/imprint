@@ -62,6 +62,13 @@ def test_disputed_when_an_earlier_lookalike_exists():
     assert out2["verdict"] == "verified"
 
 
+def test_own_earlier_registration_is_not_a_dispute():
+    first = rec("0x1", FP_A, signer="0xAlice", ts=1)
+    again = rec("0x2", FP_NEAR, signer="0xalice", ts=5)
+    out = verdict.decide(True, "0x2", FP_NEAR, again, [first, again])
+    assert out["verdict"] == "verified"
+
+
 def test_near_duplicate_blocks_squatting():
     r = rec("0x1", FP_A)
     assert verdict.find_near_duplicate(FP_NEAR, [r])[0] is r

@@ -129,14 +129,18 @@ def _rate_limit(ip: str) -> None:
 @app.post("/register")
 def register(body: RegisterBody, request: Request):
     ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "?")).split(",")[0].strip()
-    # Squatting guard: refuse an image that looks like an earlier registration.
+    # Squatting guard: refuse an image that looks like an earlier registration by someone else.
+    # Re-registering your own image with your own passkey is allowed.
     # (Checked before the rate limit so a refused duplicate does not use up the visitor's quota.)
-    lookalike = verdict.find_near_duplicate(body.fingerprint, chain.all_records())
+    me = chain.passkey_signer(body.qx, body.qy).lower()
+    others = [r for r in chain.all_records() if r.signer.lower() != me]
+    lookalike = verdict.find_near_duplicate(body.fingerprint, others)
     if lookalike:
         rec, d = lookalike
+        chain.tx_hash_for(rec)
         raise HTTPException(409, {
             "error": "near_duplicate",
-            "message": "This image looks like one that was already registered.",
+            "message": "This image looks like one that was already registered by someone else.",
             "distance": d, "earlier": _rec(rec),
         })
     _rate_limit(ip)

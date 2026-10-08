@@ -3,15 +3,18 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { api, type Rec } from "@/lib/api";
-import { RecordFacts, btnPrimary } from "@/components/ui";
+import { RecordFacts, btnGhost, btnPrimary } from "@/components/ui";
+import { loadKept } from "@/lib/store";
 
 export default function RecordPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [rec, setRec] = useState<Rec | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [kept, setKept] = useState<{ url: string; name: string } | null>(null);
 
   useEffect(() => {
     api.record(id).then(setRec).catch((e) => setErr(e instanceof Error ? e.message : "Not found"));
+    loadKept(id).then((k) => k && setKept({ url: URL.createObjectURL(k.blob), name: k.name }));
   }, [id]);
 
   return (
@@ -28,10 +31,15 @@ export default function RecordPage({ params }: { params: Promise<{ id: string }>
             <h3 className="mb-1 text-xs font-medium uppercase tracking-wider text-ink3">Image fingerprint (256 bits)</h3>
             <p className="mono break-all text-xs text-ink2">{rec.fingerprint}</p>
           </div>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/verify" className={btnPrimary}>
               Check an image against the registry
             </Link>
+            {kept && (
+              <a href={kept.url} download={kept.name} className={btnGhost}>
+                Download your marked copy (saved in this browser)
+              </a>
+            )}
           </div>
         </section>
       )}

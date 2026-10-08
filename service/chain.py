@@ -100,6 +100,10 @@ def challenge_for(watermark_id: str, fingerprint_hex: str) -> str:
     return _hex32(contract().functions.challengeFor(_b32(watermark_id), _b32(fingerprint_hex)).call())
 
 
+def passkey_signer(qx: str, qy: str) -> str:
+    return contract().functions.passkeySigner(_b32(qx), _b32(qy)).call()
+
+
 def count() -> int:
     return int(contract().functions.count().call())
 

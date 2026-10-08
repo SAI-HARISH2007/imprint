@@ -34,11 +34,13 @@ def find_near_duplicate(fp: str, records: list[Record], threshold: int = T_DUP):
 
 
 def earlier_lookalike(record: Record, records: list[Record]):
-    """An earlier registration (other ID) whose fingerprint is within T_DUP of this record's, if any."""
+    """An earlier registration (other ID, other signer) whose fingerprint is within T_DUP of this record's, if any."""
     best = None
     for r in records:
         if r.watermark_id == record.watermark_id:
             continue
+        if r.signer.lower() == record.signer.lower():
+            continue  # your own earlier registration is not a dispute
         if (r.timestamp, r.block) >= (record.timestamp, record.block):
             continue
         d = distance(record.fingerprint, r.fingerprint)

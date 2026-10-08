@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ApiError, api, b64ToBlob, type MarkResult, type RegisterResult, type Rec } from "@/lib/api";
 import { createPasskey, getStoredPasskey, passkeySupported, signChallenge, type StoredPasskey } from "@/lib/passkey";
 import { saveMarked } from "@/lib/session";
+import { keepMarked } from "@/lib/store";
 import { btnAccent, btnGhost, btnPrimary, Dropzone, RecordFacts, Spinner } from "@/components/ui";
 import { short } from "@/lib/format";
 
@@ -68,7 +69,9 @@ export default function RegisterPage() {
         qy: pk.qy,
       });
       setResult(res);
-      saveMarked(m.image_png_base64, f.name.replace(/\.[^.]+$/, "") + "-imprint.png");
+      const outName = f.name.replace(/\.[^.]+$/, "") + "-imprint.png";
+      saveMarked(m.image_png_base64, outName);
+      await keepMarked(m.watermark_id, b64ToBlob(m.image_png_base64), outName);
       setPhase("done");
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
