@@ -113,7 +113,7 @@ class RegisterBody(BaseModel):
 
 # Protect the gas-paying wallet: a few registrations per visitor per hour, and a daily cap overall.
 PER_IP_PER_HOUR = int(os.getenv("IMPRINT_PER_IP_HOUR", "6"))
-GLOBAL_PER_DAY = int(os.getenv("IMPRINT_GLOBAL_DAY", "400"))
+GLOBAL_PER_DAY = int(os.getenv("IMPRINT_GLOBAL_DAY", "150"))
 _hits: dict[str, collections.deque] = collections.defaultdict(collections.deque)
 _all_hits: collections.deque = collections.deque()
 
