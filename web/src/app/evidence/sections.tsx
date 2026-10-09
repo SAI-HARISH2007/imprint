@@ -202,7 +202,9 @@ export function BatchSection({ data }: { data: Batch }) {
         </div>
       </div>
       <p className="mt-3 max-w-3xl text-xs text-ink2">
-        Monad charges for the gas limit, not gas used, so the relayer estimates tightly. Hiding the mark in the image
+        The register call above includes several RPC round-trips of our own; after trimming them, two later
+        registrations took 2.9 s and 2.5 s end to end (chain 1.4 s and 1.2 s). Monad charges for the gas limit, not gas
+        used, so the relayer estimates tightly. Hiding the mark in the image
         took {a.mark_s_median.toFixed(1)} s median on a CPU; that is our server, not the chain. Part A spent{" "}
         {a.spent_mon.toFixed(3)} MON for {a.n} registrations and part B {b.spent_mon.toFixed(3)} MON for {b.m}.
       </p>

@@ -97,6 +97,7 @@ So the calibration numbers mostly held, and the places they did not (q20, strong
 ### Cost and speed on Monad (`service/batch_bench.py`)
 
 - **60 registrations through the real product path** (mark, passkey assertion, relay, receipt), one after another: **0.0177 MON each** (173,420 gas at 102 gwei), **1.59 s median from send to receipt**. 1.06 MON for all 60.
+- The register call as a whole took 4.8 s median in that run, most of it our own RPC round-trips; after trimming them, two later registrations took 2.9 s and 2.5 s end to end.
 - **A burst of 20** sent at once from one key: all 20 landed, confirmed in 7.4 s across 12 blocks. 0.41 MON.
 - One run, one day, testnet gas price. Numbers are what we saw, not a guarantee.
 
