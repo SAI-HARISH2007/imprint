@@ -5,7 +5,7 @@
 Built for the Monad Metropolis hackathon, Track 4 (Trust, Identity and AI Infrastructure), answering the brief line *"provenance for generated media that survives re-encoding"*.
 
 - Registry contract on Monad testnet: [`0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c`](https://testnet.monadvision.com/address/0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c) (chain 10143, source verified)
-- Live demo: *link added at submission*
+- Live demo: https://imprint-ten-theta.vercel.app (API: https://sai-harish2007--imprint-api-api.modal.run)
 - Demo video: *link added at submission*
 
 ## What it proves, and what it does not
