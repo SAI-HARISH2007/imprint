@@ -15,12 +15,16 @@ contract ImprintRegistryTest is Test {
     uint256 bobPk;
 
     bytes32 constant ID = bytes32(uint256(0xA11CE));
+    bytes32 constant ID2 = bytes32(uint256(0xB0B));
     bytes32 constant FP = keccak256("fingerprint-1");
 
     uint256 constant P256_N = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551;
 
     event Registered(bytes32 indexed watermarkId, address indexed signer, bytes32 fingerprint, uint64 timestamp);
     event PasskeyUsed(address indexed signer, bytes32 qx, bytes32 qy);
+    event RecordDisputed(
+        bytes32 indexed earlier, bytes32 indexed later, uint256 distance, address indexed by, uint64 timestamp
+    );
 
     function setUp() public {
         reg = new ImprintRegistry();
@@ -221,6 +225,82 @@ contract ImprintRegistryTest is Test {
         bytes memory sig = _sign(alicePk, reg, id, fp);
         vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.AlreadyRegistered.selector, id));
         reg.registerSigned(id, fp, alice, sig);
+    }
+
+    // ---------------------------------------------------------------- disputes
+
+    function _registerLater(bytes32 id, bytes32 fp, uint256 pk, address who) internal {
+        vm.roll(block.number + 1);
+        reg.registerSigned(id, fp, who, _sign(pk, reg, id, fp));
+    }
+
+    function test_hammingDistance() public view {
+        assertEq(reg.hammingDistance(bytes32(0), bytes32(0)), 0);
+        assertEq(reg.hammingDistance(bytes32(0), bytes32(type(uint256).max)), 256);
+        assertEq(reg.hammingDistance(FP, bytes32(uint256(FP) ^ 1)), 1);
+        assertEq(reg.hammingDistance(FP, bytes32(uint256(FP) ^ 0xFFFF)), 16);
+    }
+
+    function test_disputeDuplicate_flagsSimilarLaterRecord() public {
+        bytes32 fpNear = bytes32(uint256(FP) ^ 3); // distance 2
+        reg.registerSigned(ID, FP, alice, _sign(alicePk, reg, ID, FP));
+        _registerLater(ID2, fpNear, bobPk, bob);
+
+        assertFalse(reg.isDisputed(ID2));
+        vm.expectEmit(true, true, true, true);
+        emit RecordDisputed(ID, ID2, 2, address(0xDEAD), uint64(block.timestamp));
+        vm.prank(address(0xDEAD));
+        reg.disputeDuplicate(ID, ID2);
+
+        assertTrue(reg.isDisputed(ID2));
+        assertFalse(reg.isDisputed(ID)); // the earlier record is not flagged
+        ImprintRegistry.Dispute memory d = reg.disputeOf(ID2);
+        assertEq(d.earlier, ID);
+        assertEq(d.later, ID2);
+        assertEq(uint256(d.distance), 2);
+        assertEq(d.by, address(0xDEAD));
+        // non-destructive: both records are untouched
+        assertEq(reg.recordOf(ID).signer, alice);
+        assertEq(reg.recordOf(ID2).signer, bob);
+        assertEq(reg.count(), 2);
+    }
+
+    function test_dispute_rejectsFarApart() public {
+        reg.registerSigned(ID, FP, alice, _sign(alicePk, reg, ID, FP));
+        bytes32 fpFar = bytes32(uint256(FP) ^ type(uint256).max); // distance 256
+        _registerLater(ID2, fpFar, bobPk, bob);
+        vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.NotSimilar.selector, uint256(256), uint256(10)));
+        reg.disputeDuplicate(ID, ID2);
+        assertFalse(reg.isDisputed(ID2));
+    }
+
+    function test_dispute_rejectsUnknownRecord() public {
+        reg.registerSigned(ID, FP, alice, _sign(alicePk, reg, ID, FP));
+        vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.UnknownRecord.selector, ID2));
+        reg.disputeDuplicate(ID, ID2);
+        vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.UnknownRecord.selector, bytes32(uint256(0xC0FFEE))));
+        reg.disputeDuplicate(ID, bytes32(uint256(0xC0FFEE)));
+    }
+
+    function test_dispute_rejectsNotEarlier() public {
+        bytes32 fpNear = bytes32(uint256(FP) ^ 3);
+        reg.registerSigned(ID, FP, alice, _sign(alicePk, reg, ID, FP));
+        _registerLater(ID2, fpNear, bobPk, bob);
+        // the later record cannot be named as the earlier one
+        vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.NotEarlier.selector, ID2, ID));
+        reg.disputeDuplicate(ID2, ID);
+        // a record cannot dispute itself
+        vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.NotEarlier.selector, ID, ID));
+        reg.disputeDuplicate(ID, ID);
+    }
+
+    function test_dispute_isIdempotentPerLaterRecord() public {
+        bytes32 fpNear = bytes32(uint256(FP) ^ 3);
+        reg.registerSigned(ID, FP, alice, _sign(alicePk, reg, ID, FP));
+        _registerLater(ID2, fpNear, bobPk, bob);
+        reg.disputeDuplicate(ID, ID2);
+        vm.expectRevert(abi.encodeWithSelector(ImprintRegistry.AlreadyDisputed.selector, ID2));
+        reg.disputeDuplicate(ID, ID2);
     }
 
     // ---------------------------------------------------------------- passkey path
