@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { api, type Rec } from "@/lib/api";
+import { ApiError, api, type Rec } from "@/lib/api";
 import { RecordFacts, btnGhost, btnPrimary } from "@/components/ui";
 import { loadKept } from "@/lib/store";
 
@@ -13,9 +13,36 @@ export default function RecordPage({ params }: { params: Promise<{ id: string }>
   const [kept, setKept] = useState<{ url: string; name: string } | null>(null);
 
   useEffect(() => {
-    api.record(id).then(setRec).catch((e) => setErr(e instanceof Error ? e.message : "Not found"));
-    loadKept(id).then((k) => k && setKept({ url: URL.createObjectURL(k.blob), name: k.name }));
+    let live = true;
+    let objectUrl: string | null = null;
+    // reset only when the id changes; this runs on the client after mount
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setRec(null);
+    setErr(null);
+    setKept(null);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    api
+      .record(id)
+      .then((r) => live && setRec(r))
+      .catch((e) => {
+        if (!live) return;
+        if (e instanceof ApiError && e.status === 404) setErr("No registration with this ID on this registry.");
+        else if (e instanceof ApiError && e.status === 422) setErr("That does not look like a watermark ID.");
+        else setErr(e instanceof Error ? e.message : "Could not load this record.");
+      });
+    loadKept(id).then((k) => {
+      if (k && live) {
+        objectUrl = URL.createObjectURL(k.blob);
+        setKept({ url: objectUrl, name: k.name });
+      }
+    });
+    return () => {
+      live = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
   }, [id]);
+
+  const notFound = err?.startsWith("No registration") || err?.startsWith("That does not look");
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -23,7 +50,9 @@ export default function RecordPage({ params }: { params: Promise<{ id: string }>
         <p className="mono text-xs uppercase tracking-widest text-ink3">Registration record</p>
         <h1 className="display mt-2 break-all text-3xl sm:text-4xl">{id}</h1>
       </header>
-      {err && <p className="rounded-xl bg-nonebg p-4 text-sm">No registration with this ID on this registry.</p>}
+      {err && (
+        <p className={`rounded-xl p-4 text-sm ${notFound ? "bg-nonebg" : "bg-badbg text-bad"}`}>{err}</p>
+      )}
       {rec && (
         <section className="rise rounded-2xl border border-line bg-card p-6">
           <RecordFacts r={rec} />

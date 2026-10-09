@@ -112,7 +112,9 @@ export async function signChallenge(pk: StoredPasskey, challengeHex: string): Pr
 
   const r = got.response as AuthenticatorAssertionResponse;
   const clientDataJSON = new TextDecoder().decode(r.clientDataJSON);
-  let { r: rr, s: ss } = derToRS(new Uint8Array(r.signature));
+  const parsed = derToRS(new Uint8Array(r.signature));
+  const rr = parsed.r;
+  let ss = parsed.s;
   if (ss > N / BigInt(2)) ss = N - ss; // the contract rejects the "high s" twin of a signature
 
   return {

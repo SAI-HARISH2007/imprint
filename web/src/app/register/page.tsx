@@ -29,6 +29,8 @@ export default function RegisterPage() {
   const [unsupported, setUnsupported] = useState<string | null>(null);
 
   useEffect(() => {
+    // Read browser-only state after mount so server and client markup match.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPasskey(getStoredPasskey());
     setUnsupported(passkeySupported());
   }, []);
@@ -89,9 +91,47 @@ export default function RegisterPage() {
     }
   }
 
-  const downloadHref = marked ? URL.createObjectURL(b64ToBlob(marked.image_png_base64)) : undefined;
+  async function checkStatus() {
+    if (!marked) return;
+    setError(null);
+    try {
+      const rec = await api.record(marked.watermark_id);
+      setResult({
+        tx_hash: rec.tx_hash ?? "",
+        block: rec.block,
+        timestamp: rec.timestamp,
+        gas_used: 0,
+        gas_limit: 0,
+        seconds: 0,
+        signer: rec.signer,
+        explorer_url: rec.tx_url ?? "",
+        record: rec,
+        receipt: null,
+      });
+      const outName = file ? file.name.replace(/\.[^.]+$/, "") + "-imprint.png" : "imprint.png";
+      saveMarked(marked.image_png_base64, outName);
+      await keepMarked(marked.watermark_id, b64ToBlob(marked.image_png_base64), outName);
+      setPhase("done");
+    } catch {
+      setError("Still not on Monad. The registration did not go through; try again.");
+    }
+  }
+
+  function downloadReceipt() {
+    if (!result?.receipt) return;
+    const blob = new Blob([JSON.stringify(result.receipt, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `imprint-receipt-${marked?.watermark_id.slice(2, 10) ?? "record"}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const downloadHref = marked ? `data:image/png;base64,${marked.image_png_base64}` : undefined;
   const outName = file ? file.name.replace(/\.[^.]+$/, "") + "-imprint.png" : "imprint.png";
   const busy = phase === "marking" || phase === "signing" || phase === "confirming";
+  const canCheckStatus = phase === "error" && !!marked && !!file;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -130,9 +170,16 @@ export default function RegisterPage() {
               </Link>
             </div>
           )}
-          <button className={`${btnGhost} mt-4`} onClick={reset}>
-            Try another image
-          </button>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {canCheckStatus && (
+              <button className={btnPrimary} onClick={checkStatus}>
+                Check whether it landed
+              </button>
+            )}
+            <button className={`${btnGhost} ${canCheckStatus ? "" : "mt-0"}`} onClick={reset}>
+              Try another image
+            </button>
+          </div>
         </div>
       )}
 
@@ -197,6 +244,11 @@ export default function RegisterPage() {
               <Link className={btnGhost} href={`/r/${result.record?.watermark_id ?? marked.watermark_id}`}>
                 Open the record
               </Link>
+              {result.receipt && (
+                <button className={btnGhost} onClick={downloadReceipt}>
+                  Download receipt (JSON)
+                </button>
+              )}
               <button className={btnGhost} onClick={reset}>
                 Register another
               </button>

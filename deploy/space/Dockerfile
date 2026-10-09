@@ -13,7 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY service/ .
 
-# Fetch the watermark model at build time so the first request does not depend on a download
+# Fetch the watermark model at build time so the first request does not depend on a download.
+# HOME/XDG_CACHE_HOME/TORCH_HOME point inside /app so the cached weights are readable after we
+# drop to the unprivileged appuser below.
+ENV HOME=/app XDG_CACHE_HOME=/app/.cache TORCH_HOME=/app/.cache/torch HF_HOME=/app/.cache/huggingface
 RUN python -c "from trustmark import TrustMark; TrustMark(verbose=False, model_type='Q', encoding_type=TrustMark.Encoding.BCH_5); print('model ready')"
 
 RUN useradd -m -u 1000 appuser && chown -R appuser /app

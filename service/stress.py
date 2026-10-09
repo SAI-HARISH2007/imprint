@@ -8,6 +8,7 @@ Groups:
 import base64
 import hashlib
 import io
+import logging
 
 import numpy as np
 from PIL import Image, ImageEnhance
@@ -15,6 +16,8 @@ from PIL import Image, ImageEnhance
 import chain
 import core
 import verdict
+
+log = logging.getLogger("uvicorn.error")
 
 
 def _jpeg(img, q):
@@ -117,16 +120,25 @@ def run(marked_bytes: bytes, donor_bytes: bytes | None = None) -> list[dict]:
     original_digest = hashlib.sha256(marked_bytes).hexdigest()
     out = []
     for key, label, group, fn in CASES:
-        damaged = fn(img, donor)
-        raw = _to_png_bytes(damaged)
-        seen = core.read(raw)
-        rec = chain.lookup(seen["watermark_id"]) if seen["watermark_present"] else None
-        v = verdict.decide(seen["watermark_present"], seen["watermark_id"], seen["fingerprint"], rec, records)
-        out.append({
-            "key": key, "label": label, "group": group,
-            "verdict": v["verdict"], "distance": v["distance"],
-            "watermark_present": seen["watermark_present"],
-            "file_hash_matches": hashlib.sha256(raw).hexdigest() == original_digest,
-            "thumb": _thumb(damaged),
-        })
+        try:
+            damaged = fn(img, donor)
+            raw = _to_png_bytes(damaged)
+            seen = core.read(raw)
+            rec = chain.lookup(seen["watermark_id"]) if seen["watermark_present"] else None
+            v = verdict.decide(seen["watermark_present"], seen["watermark_id"], seen["fingerprint"], rec, records)
+            out.append({
+                "key": key, "label": label, "group": group,
+                "verdict": v["verdict"], "distance": v["distance"],
+                "watermark_present": seen["watermark_present"],
+                "file_hash_matches": hashlib.sha256(raw).hexdigest() == original_digest,
+                "thumb": _thumb(damaged),
+            })
+        except Exception as e:  # one unlucky transform must not fail the whole panel
+            log.warning("stress case %s failed: %s", key, e)
+            out.append({
+                "key": key, "label": label, "group": group,
+                "verdict": "error", "distance": None,
+                "watermark_present": False, "file_hash_matches": False,
+                "thumb": "", "error": str(e)[:200],
+            })
     return out

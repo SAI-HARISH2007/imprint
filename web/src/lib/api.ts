@@ -48,21 +48,41 @@ export type RegisterResult = {
   block: number;
   timestamp: number;
   gas_used: number;
+  gas_limit: number;
   seconds: number;
   signer: string | null;
   explorer_url: string;
   record: Rec | null;
+  receipt: Receipt | null;
 };
+
+export type Receipt = {
+  imprint_receipt: number;
+  chain_id: number;
+  registry: string;
+  watermark_id: string;
+  fingerprint: string;
+  signer: string;
+  timestamp: number;
+  block: number;
+  tx_hash: string;
+  passkey: { qx: string; qy: string } | null;
+  relayer_signature?: { address: string; signature: string };
+};
+
+export type ReceiptCheck = { name: string; ok: boolean; detail: string };
+export type ReceiptResult = { valid: boolean; checks: ReceiptCheck[]; record: Rec | null };
 
 export type StressRow = {
   key: string;
   label: string;
   group: "sharing" | "edit" | "attack";
-  verdict: VerdictKey;
+  verdict: VerdictKey | "error";
   distance: number | null;
   watermark_present: boolean;
   file_hash_matches: boolean;
   thumb: string;
+  error?: string;
 };
 
 export class ApiError extends Error {
@@ -103,9 +123,21 @@ function form(file: Blob, name: string, extra?: Record<string, Blob>) {
 
 export const api = {
   config: () => fetch(`${API}/config`).then((r) => handle<Config>(r)),
-  records: (limit = 8) =>
-    fetch(`${API}/records?limit=${limit}`).then((r) => handle<{ count: number; records: Rec[] }>(r)),
-  record: (id: string) => fetch(`${API}/record/${id}`).then((r) => handle<Rec>(r)),
+  records: (limit = 8, signer?: string) =>
+    fetch(`${API}/records?limit=${limit}${signer ? `&signer=${encodeURIComponent(signer)}` : ""}`).then((r) =>
+      handle<{ count: number; records: Rec[] }>(r),
+    ),
+  record: (id: string) => fetch(`${API}/record/${encodeURIComponent(id)}`).then((r) => handle<Rec>(r)),
+  signer: (qx: string, qy: string) =>
+    fetch(`${API}/signer?qx=${encodeURIComponent(qx)}&qy=${encodeURIComponent(qy)}`).then((r) =>
+      handle<{ signer: string }>(r),
+    ),
+  receiptVerify: (receipt: unknown) =>
+    fetch(`${API}/receipt/verify`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ receipt }),
+    }).then((r) => handle<ReceiptResult>(r)),
   mark: (file: Blob, name: string) =>
     fetch(`${API}/mark`, { method: "POST", body: form(file, name) }).then((r) => handle<MarkResult>(r)),
   challenge: (watermark_id: string, fingerprint: string) =>

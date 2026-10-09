@@ -4,6 +4,8 @@ import { useRef, useState, type ReactNode } from "react";
 import type { Rec, VerdictKey, VerifyResult } from "@/lib/api";
 import { VERDICTS, short, when } from "@/lib/format";
 
+const MAX_BYTES = 30 * 1024 * 1024;
+
 export const btn =
   "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50";
 export const btnPrimary = `${btn} bg-ink text-paper hover:opacity-90`;
@@ -42,6 +44,22 @@ export function Dropzone({
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  function pick(f: File) {
+    if (disabled) return;
+    if (f.type && !f.type.startsWith("image/")) {
+      setLocalError("That file is not an image. Use PNG, JPEG or WebP.");
+      return;
+    }
+    if (f.size > MAX_BYTES) {
+      setLocalError(`That image is ${(f.size / 1e6).toFixed(1)} MB; the limit is 30 MB.`);
+      return;
+    }
+    setLocalError(null);
+    onFile(f);
+  }
+
   return (
     <div
       onDragOver={(e) => {
@@ -53,7 +71,7 @@ export function Dropzone({
         e.preventDefault();
         setOver(false);
         const f = e.dataTransfer.files?.[0];
-        if (f && !disabled) onFile(f);
+        if (f) pick(f);
       }}
       className={`rounded-2xl border border-dashed p-8 text-center transition-colors ${
         over ? "border-accent bg-paper2" : "border-line bg-card"
@@ -67,7 +85,7 @@ export function Dropzone({
         disabled={disabled}
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onFile(f);
+          if (f) pick(f);
           e.target.value = "";
         }}
       />
@@ -75,6 +93,7 @@ export function Dropzone({
         <span className="display block text-2xl">{hint}</span>
         <span className="mt-1 block text-sm text-ink2">PNG, JPEG or WebP, up to 30 MB</span>
       </button>
+      {localError && <p className="mt-3 text-sm text-bad">{localError}</p>}
       {children && <div className="mt-5">{children}</div>}
     </div>
   );
@@ -110,7 +129,9 @@ export function RecordFacts({ r, label = "Registration" }: { r: Rec; label?: str
               {short(r.tx_hash, 10, 8)} ↗
             </a>
           ) : (
-            <span className="text-ink2">looking up…</span>
+            <a className="underline underline-offset-2" href={`/r/${r.watermark_id}`}>
+              on Monad · open the record ↗
+            </a>
           )}
         </Fact>
       </dl>

@@ -50,11 +50,37 @@ Thresholds were chosen on a calibration set of 24 photos and then applied unchan
 
 Per registration: `watermarkId`, `fingerprint`, `signer`, `timestamp`, `blockNumber`. No image, no metadata, no name. The contract has no owner, no upgrade path, no fee and no pause. First registration of an ID wins; duplicates revert. Anyone can enumerate the whole registry with plain calls (`count`, `recordsPage`), so no indexer is needed to verify independently.
 
+### Registration receipts
+
+Every successful registration also returns a **receipt**: a self-contained JSON that restates the record (ID, fingerprint, signer, block, transaction) plus the challenge the passkey signed and the relayer's own signature over all of it. `POST /receipt/verify` re-derives the passkey signer, checks the relayer signature, and matches every field against the live chain, so a holder can prove a registration later without trusting our database — and the `/receipt` page does this in the browser. Receipts are optional; the chain remains the source of truth.
+
 ### Why a passkey, and why Monad
 
 A creator should not need a wallet or a seed phrase to sign a registration. Imprint uses a **WebAuthn passkey** (fingerprint or face unlock). The browser signs an EIP-712 challenge that binds the ID and fingerprint to this chain and this contract; a relayer pays gas; **the contract itself verifies the P-256 signature through Monad's P256VERIFY precompile at `0x0100`** (OpenZeppelin's `WebAuthn` library). The relayer cannot register anything in someone else's name, and a visitor never needs testnet MON.
 
 Monad gives us a public, append-only record anyone can check without trusting our server, cheap enough to anchor every image (measured below), fast enough that registration confirms while the user is still looking at the page, and native P-256 so the passkey story is on-chain rather than a backend conversion.
+
+## API
+
+The service is a single FastAPI app (`service/app.py`). Read-only endpoints need no key; only `/register` needs a relayer wallet.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health` | liveness plus the payload width (`payload_bits`) |
+| GET | `/config` | chain id, registry address, explorer, payload bits |
+| GET | `/status` | RPC/chain-id/registry-code diagnostics, record count, relayer balance |
+| POST | `/mark` | hide an ID in an image (returns the marked image) |
+| POST | `/check` | read an ID and fingerprint, return a verdict |
+| GET | `/challenge` | the EIP-712 challenge for a (ID, fingerprint) |
+| GET | `/signer?qx=&qy=` | derive the address for a passkey public key |
+| POST | `/register` | relay a passkey-signed registration, return the record and a receipt |
+| POST | `/receipt/verify` | verify a receipt against the live chain |
+| POST | `/verify` | check a marked image and its claimed record |
+| GET | `/record/{watermark_id}` | the stored record for an ID |
+| GET | `/records?limit=&signer=` | recent records, optionally filtered by signer |
+| POST | `/stress` | re-run the robustness suite on a supplied image |
+
+Registration is rate-limited per IP and globally, input is validated before any work, and the relayer is only asked to pay gas after the squatting check passes. All limits and the proxy trust model are environment-configurable; see `.env.example`.
 
 ## Evidence
 
@@ -137,8 +163,8 @@ A C2PA manifest could carry the Imprint ID and registration transaction as a sof
 
 ```
 contracts/   ImprintRegistry.sol (Foundry), tests, deploy script
-service/     FastAPI image service and relay: mark, check, verify, stress, register
-web/         Next.js site: register, check, stress test, evidence, record pages
+service/     FastAPI image service and relay: mark, check, verify, stress, register, receipts
+web/         Next.js site: register, check, receipt, my work, stress test, evidence, record pages
 phase1/      benchmark scripts and raw results (results/*.json)
 deploy/      Dockerfile and build script for the API
 deployments/ addresses and transaction hashes
@@ -153,6 +179,7 @@ cd contracts && forge test
 # image service (Python 3.12)
 python -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env            # optional; defaults point at the live testnet registry
 cd service && uvicorn app:app --port 8000
 # relayer key: put a testnet-only wallet in ~/.imprint/deployer.json (cast wallet new --json) or IMPRINT_RELAYER_KEY
 
@@ -160,7 +187,7 @@ cd service && uvicorn app:app --port 8000
 cd web && npm install && NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 ```
 
-`service/e2e_testnet.py` runs the whole flow against the live registry with a software passkey; `service/test_service.py` and `contracts/test` are the unit tests.
+`service/e2e_testnet.py` runs the whole flow against the live registry with a software passkey. `service/test_service.py` and `service/test_hardening.py` (rate limits, input validation, receipts) are the service tests, and `contracts/test` covers the contract. The site checks itself with `npm run lint`, `npm run typecheck` and `npm run build`.
 
 ## Team
 

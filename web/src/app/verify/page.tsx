@@ -29,6 +29,15 @@ export default function VerifyPage() {
     }
   }
 
+  async function demo(file: string, label: string) {
+    setError(null);
+    try {
+      await check(await fetchDemo(file, label));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load the example image.");
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <header>
@@ -48,7 +57,7 @@ export default function VerifyPage() {
               type="button"
               disabled={busy}
               className={`${btnGhost} !px-3 !py-1.5 !text-xs`}
-              onClick={async () => check(await fetchDemo(d.file, d.name))}
+              onClick={() => demo(d.file, d.name)}
             >
               {d.label}
             </button>

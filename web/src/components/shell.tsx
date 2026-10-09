@@ -9,6 +9,8 @@ import { short } from "@/lib/format";
 const NAV = [
   { href: "/register", label: "Register" },
   { href: "/verify", label: "Check" },
+  { href: "/receipt", label: "Receipts" },
+  { href: "/me", label: "My work" },
   { href: "/stress", label: "Stress test" },
   { href: "/evidence", label: "Evidence" },
 ];
@@ -21,7 +23,7 @@ export function Header() {
         <Link href="/" className="display text-2xl leading-none tracking-tight">
           Imprint
         </Link>
-        <nav className="flex items-center gap-0.5 text-sm sm:gap-1">
+        <nav className="flex flex-wrap items-center justify-end gap-0.5 text-sm sm:gap-1">
           {NAV.map((n) => {
             const on = path === n.href || path.startsWith(n.href + "/");
             return (

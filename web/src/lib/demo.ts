@@ -9,6 +9,8 @@ export const DEMO_CHECKS = [
 export const DEMO_STRESS = { file: "/demo/demo-1-marked.png", name: "demo-registered.png" };
 
 export async function fetchDemo(file: string, name: string): Promise<File> {
-  const blob = await (await fetch(file)).blob();
-  return new File([blob], name, { type: blob.type });
+  const res = await fetch(file);
+  if (!res.ok) throw new Error(`Could not load the example image (${res.status}).`);
+  const blob = await res.blob();
+  return new File([blob], name, { type: blob.type || "image/png" });
 }

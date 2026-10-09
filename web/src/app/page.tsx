@@ -26,8 +26,20 @@ const STEPS = [
 
 export default function Home() {
   const [recent, setRecent] = useState<{ count: number; records: Rec[] } | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  function load() {
+    api
+      .records(5)
+      .then((r) => {
+        setRecent(r);
+        setFailed(false);
+      })
+      .catch(() => setFailed(true));
+  }
+
   useEffect(() => {
-    api.records(5).then(setRecent).catch(() => {});
+    load();
   }, []);
 
   return (
@@ -94,9 +106,17 @@ export default function Home() {
           <div className="mt-5 rounded-2xl border border-line bg-card">
             <div className="flex items-baseline justify-between border-b border-line px-5 py-4">
               <span className="text-sm text-ink2">Registrations</span>
-              <span className="display text-3xl">{recent ? recent.count : "…"}</span>
+              <span className="display text-3xl">{recent ? recent.count : failed ? "—" : "…"}</span>
             </div>
             <ul>
+              {failed && (
+                <li className="flex items-center justify-between gap-3 px-5 py-4 text-sm text-ink2">
+                  <span>Couldn&rsquo;t reach the registry.</span>
+                  <button className="underline underline-offset-2" onClick={load}>
+                    Retry
+                  </button>
+                </li>
+              )}
               {recent?.records.map((r) => (
                 <li key={r.watermark_id} className="flex items-center justify-between gap-3 border-b border-line px-5 py-3 last:border-0">
                   <Link href={`/r/${r.watermark_id}`} className="mono text-sm underline-offset-2 hover:underline">

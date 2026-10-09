@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, b64ToBlob, type StressRow } from "@/lib/api";
 import { DEMO_STRESS, fetchDemo } from "@/lib/demo";
 import { loadMarked } from "@/lib/session";
@@ -32,11 +32,24 @@ export default function StressPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasLast, setHasLast] = useState(false);
+  const urlRef = useRef<string | null>(null);
 
-  useEffect(() => setHasLast(!!loadMarked()), []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHasLast(!!loadMarked());
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    },
+    [],
+  );
 
   async function run(file: File) {
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
     const url = URL.createObjectURL(file);
+    urlRef.current = url;
     setSource({ file, url });
     const img = new Image();
     img.onload = () => setSource((s) => (s && s.file === file ? { ...s, dims: `${img.naturalWidth}×${img.naturalHeight}` } : s));
@@ -55,6 +68,15 @@ export default function StressPage() {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function useDemo() {
+    setError(null);
+    try {
+      await run(await fetchDemo(DEMO_STRESS.file, DEMO_STRESS.name));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load the demo image.");
     }
   }
 
@@ -89,7 +111,7 @@ export default function StressPage() {
               <button
                 type="button"
                 className={`${btnGhost} !px-4 !py-2 !text-xs`}
-                onClick={async () => run(await fetchDemo(DEMO_STRESS.file, DEMO_STRESS.name))}
+                onClick={useDemo}
               >
                 Use the demo image
               </button>
@@ -195,7 +217,13 @@ export default function StressPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <Chip verdict={r.verdict} />
+                            {r.verdict === "error" ? (
+                              <span className="text-xs font-medium text-bad" title={r.error}>
+                                error
+                              </span>
+                            ) : (
+                              <Chip verdict={r.verdict} />
+                            )}
                           </td>
                           <td className="mono px-4 py-3">
                             {r.distance === null ? <span className="text-ink3">–</span> : `${r.distance} / 256`}

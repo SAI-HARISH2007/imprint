@@ -29,11 +29,17 @@ _records: dict[str, Record] = {}
 _next_index = 0
 _scan_lock = threading.Lock()
 _tx_cache: dict[str, str] = {}
+_count_cache: tuple[float, int] = (0.0, -1)
+COUNT_TTL = float(os.getenv("IMPRINT_COUNT_TTL", "10"))
 PAGE = 100
 
 
 class RelayError(Exception):
     pass
+
+
+class BadInput(ValueError):
+    """A caller-supplied hex string was not valid. Maps to HTTP 400/422."""
 
 
 _gas_price_cache: tuple[float, int] = (0.0, 0)
@@ -62,9 +68,35 @@ def contract():
     return _contract
 
 
-def _b32(x: str) -> bytes:
-    h = x[2:] if x.startswith("0x") else x
-    return bytes.fromhex(h.rjust(64, "0"))
+def _b32(x: str, field: str = "value") -> bytes:
+    """Hex string -> exactly 32 bytes. Raises BadInput (never ValueError) on anything else."""
+    if not isinstance(x, str):
+        raise BadInput(f"{field} must be a hex string")
+    h = x[2:] if x.startswith("0x") or x.startswith("0X") else x
+    if not h:
+        raise BadInput(f"{field} must not be empty")
+    if len(h) > 64:
+        raise BadInput(f"{field} is longer than 32 bytes")
+    if len(h) % 2:
+        h = "0" + h
+    try:
+        raw = bytes.fromhex(h)
+    except ValueError as e:
+        raise BadInput(f"{field} is not valid hex") from e
+    return raw.rjust(32, b"\x00")
+
+
+def _hexbytes(x: str, field: str = "value") -> bytes:
+    """Arbitrary-length hex string -> bytes. Raises BadInput on bad hex."""
+    if not isinstance(x, str):
+        raise BadInput(f"{field} must be a hex string")
+    h = x[2:] if x.startswith("0x") or x.startswith("0X") else x
+    if len(h) % 2:
+        h = "0" + h
+    try:
+        return bytes.fromhex(h)
+    except ValueError as e:
+        raise BadInput(f"{field} is not valid hex") from e
 
 
 def _hex32(b: bytes) -> str:
@@ -119,8 +151,15 @@ def passkey_signer(qx: str, qy: str) -> str:
     return Web3.to_checksum_address(digest[-20:])
 
 
-def count() -> int:
-    return int(contract().functions.count().call())
+def count(fresh: bool = False) -> int:
+    """Registration count, cached for COUNT_TTL seconds so a busy verifier does not
+    hammer the RPC with the same eth_call."""
+    global _count_cache
+    t, n = _count_cache
+    if fresh or n < 0 or time.time() - t > COUNT_TTL:
+        n = int(contract().functions.count().call())
+        _count_cache = (time.time(), n)
+    return n
 
 
 def refresh_index() -> None:
@@ -179,11 +218,27 @@ def lookup(watermark_id: str) -> Record | None:
 
 # ---------------------------------------------------------------- relay
 
+def _landed(watermark_id: str, timeout: float) -> Record | None:
+    """Poll for a record that may have landed even if we lost the receipt."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            rec = get_record(watermark_id)
+        except Exception:
+            rec = None
+        if rec is not None:
+            return rec
+        time.sleep(0.5)
+    return None
+
+
 def register_passkey(watermark_id: str, fingerprint_hex: str, auth: dict, qx: str, qy: str) -> dict:
     c = contract()
     auth_tuple = (
-        _b32(auth["r"]), _b32(auth["s"]), int(auth["challengeIndex"]), int(auth["typeIndex"]),
-        bytes.fromhex(auth["authenticatorData"].removeprefix("0x")), auth["clientDataJSON"],
+        _b32(auth["r"], "r"), _b32(auth["s"], "s"),
+        int(auth["challengeIndex"]), int(auth["typeIndex"]),
+        _hexbytes(auth["authenticatorData"], "authenticatorData"),
+        auth["clientDataJSON"],
     )
     fn = c.functions.registerPasskey(_b32(watermark_id), _b32(fingerprint_hex), auth_tuple, _b32(qx), _b32(qy))
     acct = _relayer_account()
@@ -202,23 +257,47 @@ def register_passkey(watermark_id: str, fingerprint_hex: str, auth: dict, qx: st
         })
         signed = acct.sign_transaction(tx)
         t0 = time.time()
-        h = w3().eth.send_raw_transaction(signed.raw_transaction)
-        receipt = w3().eth.wait_for_transaction_receipt(h, timeout=60, poll_latency=0.25)
+        try:
+            h = w3().eth.send_raw_transaction(signed.raw_transaction)
+        except Exception as e:
+            # A "nonce too low" / "already known" here usually means a previous
+            # attempt of this same registration already landed.
+            rec = _landed(watermark_id, 6)
+            if rec is not None:
+                return _success(rec, rec.tx_hash, 0, 0, 0, t0)
+            raise RelayError(_explain_revert(e)) from e
+        h = _hex32(h)
+        try:
+            receipt = w3().eth.wait_for_transaction_receipt(h, timeout=60, poll_latency=0.25)
+        except Exception:
+            # The transaction was broadcast; we just did not see the receipt in
+            # time. It may still confirm, so check the registry before failing.
+            rec = _landed(watermark_id, 30)
+            if rec is not None:
+                return _success(rec, h, 0, int(gas * 1.15), 0, t0)
+            raise RelayError("the registration was submitted but not confirmed in time; check again shortly")
     if receipt["status"] != 1:
         raise RelayError("transaction reverted")
     rec = get_record(watermark_id)  # one call: signer, timestamp, block, fingerprint
     if rec:
-        rec.tx_hash = _hex32(h)
+        rec.tx_hash = h
         _tx_cache[rec.watermark_id] = rec.tx_hash
         _records[rec.watermark_id] = rec  # visible to readers now; the page index catches up on its own
+    if rec is None:
+        raise RelayError("the transaction confirmed but the record could not be read back")
+    return _success(rec, h, int(receipt["gasUsed"]), int(tx["gas"]),
+                    int(receipt.get("effectiveGasPrice", tx.get("gasPrice", 0))), t0)
+
+
+def _success(rec: Record, tx_hash: str, gas_used: int, gas_limit: int, gas_price: int, t0: float) -> dict:
     return {
-        "tx_hash": _hex32(h), "block": int(receipt["blockNumber"]),
-        "timestamp": rec.timestamp if rec else 0,
-        "gas_used": int(receipt["gasUsed"]), "gas_limit": int(tx["gas"]),
+        "tx_hash": tx_hash, "block": int(rec.block),
+        "timestamp": rec.timestamp,
+        "gas_used": int(gas_used), "gas_limit": int(gas_limit), "gas_price": int(gas_price),
         "seconds": round(time.time() - t0, 2),
-        "signer": rec.signer if rec else None,
+        "signer": rec.signer,
         "record": rec,
-        "explorer_url": explorer_tx(_hex32(h)),
+        "explorer_url": explorer_tx(tx_hash) if tx_hash else None,
     }
 
 

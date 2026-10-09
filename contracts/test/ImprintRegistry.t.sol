@@ -176,6 +176,36 @@ contract ImprintRegistryTest is Test {
         assertEq(recs.length, 0);
     }
 
+    function test_recordsPageClampsHugeLimitsAndZero() public {
+        for (uint256 i = 1; i <= 3; i++) {
+            bytes32 id = bytes32(i);
+            bytes32 fp = keccak256(abi.encode(i));
+            reg.registerSigned(id, fp, alice, _sign(alicePk, reg, id, fp));
+        }
+
+        // a limit that would overflow offset + limit must clip, not panic
+        (bytes32[] memory ids, ImprintRegistry.Record[] memory recs) =
+            reg.recordsPage(1, type(uint256).max);
+        assertEq(ids.length, 2);
+        assertEq(recs.length, 2);
+        assertEq(ids[0], bytes32(uint256(2)));
+
+        // limit 0 is an empty page
+        (ids, recs) = reg.recordsPage(0, 0);
+        assertEq(ids.length, 0);
+        assertEq(recs.length, 0);
+
+        // offset == count is empty
+        (ids, recs) = reg.recordsPage(3, 10);
+        assertEq(ids.length, 0);
+        assertEq(recs.length, 0);
+
+        // an absurd offset is empty, never a panic
+        (ids, recs) = reg.recordsPage(type(uint256).max, 10);
+        assertEq(ids.length, 0);
+        assertEq(recs.length, 0);
+    }
+
     function test_failedRegistrationDoesNotChangeCount() public {
         reg.registerSigned(ID, FP, alice, _sign(alicePk, reg, ID, FP));
         bytes memory sig = _sign(bobPk, reg, ID, FP);

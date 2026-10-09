@@ -96,8 +96,8 @@ contract ImprintRegistry is EIP712 {
     {
         uint256 n = _ids.length;
         if (offset >= n) return (new bytes32[](0), new Record[](0));
-        uint256 end = offset + limit;
-        if (end > n) end = n;
+        // Clamp without computing offset + limit, which would overflow for a huge limit.
+        uint256 end = limit < n - offset ? offset + limit : n;
         ids = new bytes32[](end - offset);
         recs = new Record[](end - offset);
         for (uint256 i = offset; i < end; i++) {
