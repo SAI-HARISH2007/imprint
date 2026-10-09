@@ -4,7 +4,7 @@
 
 Built for the Monad Metropolis hackathon, Track 4 (Trust, Identity and AI Infrastructure), answering the brief line *"provenance for generated media that survives re-encoding"*.
 
-- Registry contract on Monad testnet: [`0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c`](https://testnet.monadvision.com/address/0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c) (chain 10143, source verified). The deployed bytecode is the contract as of commit `7e2ec49`; the later `recordsPage` overflow clamp in `contracts/src` is tested but not yet redeployed, since the API never asks for pages larger than 100.
+- Registry contract on Monad testnet: [`0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c`](https://testnet.monadvision.com/address/0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c) (chain 10143, source verified). The deployed bytecode is the contract as of commit `7e2ec49`. Two later additions in `contracts/src` — the `recordsPage` overflow clamp and the on-chain `disputeDuplicate` — are implemented and tested but **not redeployed** (the API never asks for pages larger than 100, and disputes are a source feature awaiting a redeploy).
 - Live demo: https://imprint-ten-theta.vercel.app (API: https://sai-harish2007--imprint-api-api.modal.run)
 - Demo video: *link added at submission*
 
@@ -13,6 +13,16 @@ Built for the Monad Metropolis hackathon, Track 4 (Trust, Identity and AI Infras
 Imprint proves that **a particular passkey registered this image at a particular time**, and whether a copy you hold is **still consistent with what was registered**.
 
 It does **not** prove who made the image, that the image is real, or that it was never edited somewhere else. Anyone can register an image they did not make, so Imprint refuses to register an image that looks like one already on record by someone else, and the checker flags a later look-alike as *disputed*. **"Not found" means no record, not that the image is fake.** Imprint does not detect AI-generated content.
+
+### Where the duplicate guard is enforced (be precise about this)
+
+The near-duplicate refusal is a **policy of this service**, not of the contract. The contract stores whatever a validly-signed registration contains; it has no fingerprint comparison at registration. So a determined caller who signs directly and calls `registerSigned`/`registerPasskey` on Monad **can** register a near-duplicate, bypassing our `409`. The service is the convenience path that applies the guard; the chain is the record.
+
+Two things reduce the gap, and one is honest about not closing it:
+
+- The **checker** (service and `/verify`) reads the registry and marks a later look-alike as *disputed* regardless of how it got there, so the situation is at least visible to readers.
+- The contract now includes a permissionless **`disputeDuplicate`** (source, pending redeploy) that records a public on-chain flag when two records are within 10 bits, non-destructively and with no admin.
+- Neither prevents the registration from existing. This is a deliberate design choice — no owner, no allowlist, no censorship — and it is documented rather than hidden. See `docs/enforcement.md`.
 
 ## How it works
 
@@ -23,7 +33,10 @@ image ──► hide a 61-bit ID in the pixels   any copy ──► read the ID 
       ──► passkey signs (ID, fingerprint)           ──► look up the ID on Monad
       ──► relayer submits; contract verifies        ──► compare fingerprints
           the P-256 signature on-chain              ──► one of five verdicts
+      ──► marked image revealed only once the ID is on chain
 ```
+
+The marked image is **withheld until the ID is on chain**. `/mark` returns only an opaque claim token; the pixels are returned by `/register` (or by `/claim`, but only after the ID exists in the registry). Otherwise anyone could read the hidden ID out of the file — the decoder is public — and register it first. See `docs/enforcement.md`.
 
 Two independent signals, because they fail differently:
 
@@ -54,6 +67,20 @@ Per registration: `watermarkId`, `fingerprint`, `signer`, `timestamp`, `blockNum
 
 Every successful registration also returns a **receipt**: a self-contained JSON that restates the record (ID, fingerprint, signer, block, transaction) plus the challenge the passkey signed and the relayer's own signature over all of it. `POST /receipt/verify` re-derives the passkey signer, checks the relayer signature, and matches every field against the live chain, so a holder can prove a registration later without trusting our database — and the `/receipt` page does this in the browser. Receipts are optional; the chain remains the source of truth.
 
+### The fingerprint is a published specification
+
+The 256-bit fingerprint is not an implementation detail: it is pinned as algorithm **`phash-dct-16x16-v1`** (version 1) in `service/fingerprint.py`, with the exact recipe written out, fixed test vectors, and an independent reference implementation checked against it (`service/test_fingerprint.py`). Every receipt carries `fingerprint_algo`, and `POST /config` and `POST /verify` expose the algorithm id, so a record written today stays interpretable if the algorithm ever changes. Full spec: `docs/fingerprint.md`.
+
+### Verify without trusting our server
+
+`service/imprint_verify.py` is a standalone checker. It reads your image with Pillow, computes the fingerprint with the published spec, and reads the registry straight from Monad with web3 — **it never calls the Imprint API and never trusts the server's verdict**. It does not decode the hidden watermark (that needs the TrustMark model, which it deliberately does not bundle); pass `--id` if you know it, or `--scan` to match by content.
+
+```bash
+cd service
+python imprint_verify.py my_photo.png --id 0x… --json
+python imprint_verify.py my_photo.png --scan
+```
+
 ### Why a passkey, and why Monad
 
 A creator should not need a wallet or a seed phrase to sign a registration. Imprint uses a **WebAuthn passkey** (fingerprint or face unlock). The browser signs an EIP-712 challenge that binds the ID and fingerprint to this chain and this contract; a relayer pays gas; **the contract itself verifies the P-256 signature through Monad's P256VERIFY precompile at `0x0100`** (OpenZeppelin's `WebAuthn` library). The relayer cannot register anything in someone else's name, and a visitor never needs testnet MON.
@@ -67,15 +94,16 @@ The service is a single FastAPI app (`service/app.py`). Read-only endpoints need
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/health` | liveness plus the payload width (`payload_bits`) |
-| GET | `/config` | chain id, registry address, explorer, payload bits |
-| GET | `/status` | RPC/chain-id/registry-code diagnostics, record count, relayer balance |
-| POST | `/mark` | hide an ID in an image (returns the marked image) |
+| GET | `/config` | chain id, registry address, explorer, fingerprint algorithm + version, thresholds |
+| GET | `/status` | RPC/chain-id/registry-code diagnostics, record count, relayer funded-or-not |
+| POST | `/mark` | hide an ID in an image; returns a short-lived **claim token**, not the pixels |
+| GET | `/claim?token=` | reveal a marked image, only once its ID is in the registry |
 | POST | `/check` | raw read: the hidden ID (if any) and the fingerprint, no registry lookup |
 | GET | `/challenge` | the EIP-712 challenge for a (ID, fingerprint) |
 | GET | `/signer?qx=&qy=` | derive the address for a passkey public key |
-| POST | `/register` | relay a passkey-signed registration, return the record and a receipt |
+| POST | `/register` | relay a passkey-signed registration; return the record, a receipt, and the marked image for a matching claim |
 | POST | `/receipt/verify` | verify a receipt against the live chain |
-| POST | `/verify` | check a marked image and its claimed record |
+| POST | `/verify` | check a marked image and its claimed record; returns the fingerprint algorithm id |
 | GET | `/record/{watermark_id}` | the stored record for an ID |
 | GET | `/records?limit=&signer=` | recent records, optionally filtered by signer |
 | POST | `/stress` | re-run the robustness suite on a supplied image |
@@ -147,13 +175,14 @@ What Imprint adds is narrow and specific:
 2. **Passkey-native signing verified on-chain** through Monad's P-256 precompile.
 3. **An explicit separation** of "same rendition" (verified) from "modified descendant" (altered) from "probable copy" (likely match), with "not found" never meaning fake.
 4. **A published benchmark with the failures left in**, and a live stress page that reproduces it on any registered image.
-5. **A squatting defense** (near-duplicate refusal and the *disputed* verdict) that is enforced from public chain data.
+5. **A squatting defense** — a service-enforced near-duplicate refusal, the *disputed* verdict from public chain data, and a permissionless on-chain `disputeDuplicate` (source, pending redeploy). The refusal is policy, not consensus; see "Where the duplicate guard is enforced".
 
 A C2PA manifest could carry the Imprint ID and registration transaction as a soft binding; that interoperability is the natural next step, not a competitor.
 
 ## Limits
 
 - Proves registration, not authorship.
+- The near-duplicate refusal is enforced by the service, not the contract. A direct `registerSigned`/`registerPasskey` call can register a near-duplicate; the checker will still surface it as *disputed*. The on-chain `disputeDuplicate` makes this public but does not prevent it, and is not yet deployed.
 - The mark is removable by someone who knows the library. Crops above about 20% and rotation defeat it.
 - Thresholds were fixed on 24 photos and checked on 40; both sets are modest, and the held-out set has no AI-generated images yet.
 - The relayer is a single testnet wallet with a daily cap. A real deployment would let apps run their own.
@@ -164,8 +193,10 @@ A C2PA manifest could carry the Imprint ID and registration transaction as a sof
 ```
 contracts/   ImprintRegistry.sol (Foundry), tests, deploy script
 service/     FastAPI image service and relay: mark, check, verify, stress, register, receipts
+             plus fingerprint.py (spec), claims.py, index.py, imprint_verify.py (standalone checker)
 web/         Next.js site: register, check, receipt, my work, stress test, evidence, record pages
 phase1/      benchmark scripts and raw results (results/*.json)
+docs/        fingerprint spec, enforcement boundary, verifier, C2PA and Merkle-batch notes
 deploy/      Dockerfile and build script for the API
 deployments/ addresses and transaction hashes
 ```
@@ -187,7 +218,7 @@ cd service && uvicorn app:app --port 8000
 cd web && npm install && NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 ```
 
-`service/e2e_testnet.py` runs the whole flow against the live registry with a software passkey. `service/test_service.py` and `service/test_hardening.py` (rate limits, input validation, receipts) are the service tests, and `contracts/test` covers the contract. The site checks itself with `npm run lint`, `npm run typecheck` and `npm run build`.
+`service/e2e_testnet.py` runs the whole flow against the live registry with a software passkey. `service/test_service.py`, `service/test_hardening.py` (rate limits, input validation, receipts, the mark/claim race) and `service/test_fingerprint.py` / `test_claims.py` / `test_index.py` / `test_verifier.py` are the service tests, and `contracts/test` covers the contract. The site checks itself with `npm run lint`, `npm run typecheck` and `npm run build`.
 
 ## Team
 
