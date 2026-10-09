@@ -73,7 +73,7 @@ export function Dropzone({
       />
       <button type="button" disabled={disabled} onClick={() => input.current?.click()} className="w-full">
         <span className="display block text-2xl">{hint}</span>
-        <span className="mt-1 block text-sm text-ink2">PNG, JPEG or WebP, up to 12 MB</span>
+        <span className="mt-1 block text-sm text-ink2">PNG, JPEG or WebP, up to 30 MB</span>
       </button>
       {children && <div className="mt-5">{children}</div>}
     </div>

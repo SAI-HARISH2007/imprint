@@ -14,7 +14,7 @@ import core
 import stress
 import verdict
 
-MAX_BYTES = 12 * 1024 * 1024
+MAX_BYTES = 30 * 1024 * 1024
 
 
 @asynccontextmanager
@@ -27,10 +27,15 @@ app = FastAPI(title="Imprint", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
+import logging
+log = logging.getLogger("uvicorn.error")
+
+
 def _read_upload(file: UploadFile) -> bytes:
     data = file.file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
-        raise HTTPException(413, "file is larger than 12 MB")
+        raise HTTPException(413, "file is larger than 30 MB")
+    log.info("upload %s: %d bytes, %s", file.filename, len(data), file.content_type)
     return data
 
 
@@ -67,7 +72,9 @@ def config():
 def mark(file: UploadFile = File(...)):
     data = _read_upload(file)
     try:
-        return core.mark(data)
+        out = core.mark(data)
+        log.info("mark %dx%d strength=%s self_test=%s", out["width"], out["height"], out["strength"], out["self_test"])
+        return out
     except core.BadImage as e:
         raise HTTPException(400, str(e))
 
@@ -197,6 +204,7 @@ def stress_run(file: UploadFile = File(...), other: UploadFile | None = File(Non
     try:
         base = core.read(data)  # does the file you dropped actually carry a mark?
         rec = chain.lookup(base["watermark_id"]) if base["watermark_present"] else None
+        log.info("stress baseline: mark_found=%s registered=%s", base["watermark_present"], rec is not None)
         return {
             "baseline": {"mark_found": base["watermark_present"], "registered": rec is not None},
             "results": stress.run(data, donor),

@@ -26,7 +26,7 @@ const GROUPS: { key: StressRow["group"]; title: string; blurb: string }[] = [
 ];
 
 export default function StressPage() {
-  const [source, setSource] = useState<{ file: File; url: string } | null>(null);
+  const [source, setSource] = useState<{ file: File; url: string; dims?: string } | null>(null);
   const [rows, setRows] = useState<StressRow[] | null>(null);
   const [baseline, setBaseline] = useState<{ mark_found: boolean; registered: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,7 +36,11 @@ export default function StressPage() {
   useEffect(() => setHasLast(!!loadMarked()), []);
 
   async function run(file: File) {
-    setSource({ file, url: URL.createObjectURL(file) });
+    const url = URL.createObjectURL(file);
+    setSource({ file, url });
+    const img = new Image();
+    img.onload = () => setSource((s) => (s && s.file === file ? { ...s, dims: `${img.naturalWidth}×${img.naturalHeight}` } : s));
+    img.src = url;
     setBusy(true);
     setError(null);
     setRows(null);
@@ -128,8 +132,16 @@ export default function StressPage() {
       {rows && source && (
         <div className="rise space-y-10">
           <div className="flex flex-wrap items-center gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={source.url} alt="" className="h-20 w-auto rounded-lg border border-line" />
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={source.url} alt="" className="h-20 w-auto rounded-lg border border-line" />
+              <div className="text-xs text-ink2">
+                <div className="mono text-ink">{source.file.name}</div>
+                <div>
+                  {(source.file.size / 1e6).toFixed(1)} MB{source.dims ? ` · ${source.dims}` : ""} · {source.file.type || "unknown type"}
+                </div>
+              </div>
+            </div>
             <div className="flex flex-wrap gap-6 text-sm">
               <span>
                 <span className="display text-3xl text-ok">
