@@ -43,8 +43,10 @@ with image.imports():
 
 @app.function(
     secrets=[modal.Secret.from_name("imprint-relayer")],
-    cpu=2.0,
-    memory=3072,
+    # Smallest reservation that still bursts to real cores when work arrives. Sized so one always-on
+    # container (min_containers=1 during judging) costs about $1.60 a day against a $30 free credit.
+    cpu=(0.125, 2.0),
+    memory=(2048, 3072),
     timeout=300,
     scaledown_window=600,
     min_containers=0,
