@@ -39,14 +39,14 @@ def to_bytes(img, fmt, **kw):
 with TestClient(app) as client:
     raw = SRC_REGISTERED.read_bytes()
     m = client.post("/mark", files={"file": ("demo.png", raw, "image/png")}).json()
-    marked_bytes = base64.b64decode(m["image_png_base64"])
 
     pk = SoftPasskey("imprint-demo")
     ch = client.get("/challenge", params={"watermark_id": m["watermark_id"], "fingerprint": "0x" + m["fingerprint"]}).json()["challenge"]
     r = client.post("/register", json={"watermark_id": m["watermark_id"], "fingerprint": "0x" + m["fingerprint"],
-                                       "auth": pk.assert_challenge(ch), "qx": pk.qx, "qy": pk.qy})
+                                       "auth": pk.assert_challenge(ch), "qx": pk.qx, "qy": pk.qy, "claim": m["claim"]})
     assert r.status_code == 200, r.text
     print("registered:", r.json()["tx_hash"])
+    marked_bytes = base64.b64decode(r.json()["image_png_base64"])
 
     marked = Image.open(io.BytesIO(marked_bytes)).convert("RGB")
     (OUT / "demo-1-marked.png").write_bytes(marked_bytes)

@@ -81,11 +81,8 @@ needs_image = pytest.mark.skipif(not IMG.exists(), reason="run phase1/robustness
 
 @needs_image
 def test_mark_survives_jpeg_and_resize_and_bytes_do_not():
-    client = TestClient(__import__("app").app)
     raw = IMG.read_bytes()
-    r = client.post("/mark", files={"file": ("a.png", raw, "image/png")})
-    assert r.status_code == 200
-    m = r.json()
+    m = core.mark(raw)  # the HTTP layer withholds the image until it is on chain; core returns it
     marked = base64.b64decode(m["image_png_base64"])
 
     img = Image.open(io.BytesIO(marked))
@@ -94,6 +91,7 @@ def test_mark_survives_jpeg_and_resize_and_bytes_do_not():
     shared = buf.getvalue()
     assert shared != marked
 
+    client = TestClient(__import__("app").app)
     c = client.post("/check", files={"file": ("b.jpg", shared, "image/jpeg")}).json()
     assert c["watermark_present"] and c["watermark_id"] == m["watermark_id"]
     assert core.distance(c["fingerprint"], m["fingerprint"]) <= verdict.T_MATCH
