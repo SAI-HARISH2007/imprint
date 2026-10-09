@@ -112,7 +112,7 @@ class RegisterBody(BaseModel):
 
 
 # Protect the gas-paying wallet: a few registrations per visitor per hour, and a daily cap overall.
-PER_IP_PER_HOUR = int(os.getenv("IMPRINT_PER_IP_HOUR", "6"))
+PER_IP_PER_HOUR = int(os.getenv("IMPRINT_PER_IP_HOUR", "12"))
 GLOBAL_PER_DAY = int(os.getenv("IMPRINT_GLOBAL_DAY", "150"))
 _hits: dict[str, collections.deque] = collections.defaultdict(collections.deque)
 _all_hits: collections.deque = collections.deque()
@@ -155,10 +155,7 @@ def register(body: RegisterBody, request: Request):
         res = chain.register_passkey(body.watermark_id, body.fingerprint, body.auth.model_dump(), body.qx, body.qy)
     except chain.RelayError as e:
         raise HTTPException(400, str(e))
-    chain._tx_cache[body.watermark_id.lower()] = res["tx_hash"]
-    chain._records.pop(body.watermark_id.lower(), None)
-    rec = chain.lookup(body.watermark_id)
-    chain.refresh_index()
+    rec = res.pop("record")
     return {**res, "record": _rec(rec)}
 
 

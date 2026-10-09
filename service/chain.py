@@ -36,6 +36,19 @@ class RelayError(Exception):
     pass
 
 
+_gas_price_cache: tuple[float, int] = (0.0, 0)
+
+
+def _gas_price() -> int:
+    """Gas price, refreshed at most once a minute. It barely moves on testnet."""
+    global _gas_price_cache
+    t, p = _gas_price_cache
+    if time.time() - t > 60 or p == 0:
+        p = w3().eth.gas_price
+        _gas_price_cache = (time.time(), p)
+    return p
+
+
 def w3() -> Web3:
     global _w3, _contract
     if _w3 is None:
@@ -101,7 +114,9 @@ def challenge_for(watermark_id: str, fingerprint_hex: str) -> str:
 
 
 def passkey_signer(qx: str, qy: str) -> str:
-    return contract().functions.passkeySigner(_b32(qx), _b32(qy)).call()
+    """Same derivation as the contract: address(uint160(keccak256(abi.encode(qx, qy))))."""
+    digest = Web3.keccak(_b32(qx) + _b32(qy))
+    return Web3.to_checksum_address(digest[-20:])
 
 
 def count() -> int:
@@ -183,7 +198,7 @@ def register_passkey(watermark_id: str, fingerprint_hex: str, auth: dict, qx: st
             "nonce": w3().eth.get_transaction_count(acct.address, "pending"),
             "gas": int(gas * 1.15),
             "chainId": CHAIN_ID,
-            "gasPrice": w3().eth.gas_price,
+            "gasPrice": _gas_price(),
         })
         signed = acct.sign_transaction(tx)
         t0 = time.time()
@@ -191,13 +206,18 @@ def register_passkey(watermark_id: str, fingerprint_hex: str, auth: dict, qx: st
         receipt = w3().eth.wait_for_transaction_receipt(h, timeout=60, poll_latency=0.25)
     if receipt["status"] != 1:
         raise RelayError("transaction reverted")
-    block = w3().eth.get_block(receipt["blockNumber"])
-    rec = get_record(watermark_id)
+    rec = get_record(watermark_id)  # one call: signer, timestamp, block, fingerprint
+    if rec:
+        rec.tx_hash = _hex32(h)
+        _tx_cache[rec.watermark_id] = rec.tx_hash
+        _records[rec.watermark_id] = rec  # visible to readers now; the page index catches up on its own
     return {
-        "tx_hash": _hex32(h), "block": int(receipt["blockNumber"]), "timestamp": int(block["timestamp"]),
+        "tx_hash": _hex32(h), "block": int(receipt["blockNumber"]),
+        "timestamp": rec.timestamp if rec else 0,
         "gas_used": int(receipt["gasUsed"]), "gas_limit": int(tx["gas"]),
         "seconds": round(time.time() - t0, 2),
         "signer": rec.signer if rec else None,
+        "record": rec,
         "explorer_url": explorer_tx(_hex32(h)),
     }
 
