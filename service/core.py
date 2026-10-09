@@ -119,3 +119,4 @@ def read(data: bytes) -> dict:
         "watermark_id": bits_to_id(secret) if present else None,
         "fingerprint": fingerprint(img),
     }
+

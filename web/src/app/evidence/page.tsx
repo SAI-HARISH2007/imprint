@@ -1,6 +1,7 @@
 import ev from "@/lib/evidence.json";
 import heldout from "@/lib/heldout.json";
 import batch from "@/lib/batch.json";
+import markStats from "@/lib/mark_stats.json";
 import { BatchSection, HeldoutSection, type Batch, type Heldout } from "./sections";
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -38,6 +39,28 @@ export default function EvidencePage() {
             passes, not 100%.
           </li>
         </ul>
+      </section>
+
+      <section className="rounded-2xl border border-line bg-card p-6">
+        <h2 className="display text-3xl">What the mark looks like</h2>
+        <p className="mt-2 max-w-3xl text-sm text-ink2">
+          The registered demo image, its original, and the exact difference between them amplified {markStats.gain}×
+          (grey is no change). The mark changes each colour channel by {markStats.rms} of 255 on average, at most{" "}
+          {markStats.max}; PSNR {markStats.psnr_db} dB. The Register page shows the same picture for your own image.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {[
+            ["/demo/demo-1-original.jpg", "Original"],
+            ["/demo/demo-1-marked.png", "Marked (registered)"],
+            ["/demo/demo-1-mark-x30.png", `Difference × ${markStats.gain}`],
+          ].map(([src, label]) => (
+            <figure key={src}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt={label} className="w-full rounded-lg border border-line" />
+              <figcaption className="mt-1 text-xs text-ink2">{label}</figcaption>
+            </figure>
+          ))}
+        </div>
       </section>
 
       {(["sharing", "edit"] as const).map((g) => (

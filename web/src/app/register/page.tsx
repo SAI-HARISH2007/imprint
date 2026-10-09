@@ -6,6 +6,7 @@ import { ApiError, api, b64ToBlob, type MarkResult, type RegisterResult, type Re
 import { createPasskey, getStoredPasskey, passkeySupported, signChallenge, type StoredPasskey } from "@/lib/passkey";
 import { saveMarked } from "@/lib/session";
 import { keepMarked } from "@/lib/store";
+import { MarkDiff } from "@/components/markdiff";
 import { btnAccent, btnGhost, btnPrimary, Dropzone, RecordFacts, Spinner } from "@/components/ui";
 import { short } from "@/lib/format";
 
@@ -254,6 +255,7 @@ export default function RegisterPage() {
               </button>
             </div>
           </div>
+          {file && <MarkDiff original={file} markedB64={marked.image_png_base64} />}
           {!(marked.self_test.png && marked.self_test.jpeg70) && (
             <p className="rounded-xl bg-warnbg p-4 text-sm text-warn">
               This image is hard to mark: the hidden ID did not read back reliably after a test copy. It is registered,
