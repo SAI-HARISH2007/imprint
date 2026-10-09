@@ -102,7 +102,8 @@ export function HeldoutSection({ data }: { data: Heldout }) {
           The thresholds (match {data.thresholds.match}, likely {data.thresholds.near}, duplicate{" "}
           {data.thresholds.duplicate} bits) were fixed on the calibration set above, then applied unchanged to images
           they had never seen: fresh photos at mixed sizes and orientations{sets.some(([k]) => k === "ai") ? ", plus AI-generated images" : ""}.
-          Each row shows the verdict the product would actually give.
+          Each row shows the verdict the product would actually give. One of the 40 photos later turned out to be the
+          same stock photo as a calibration image (the source maps seeds to a finite pool), so 39 were truly unseen.
         </p>
       </div>
       {sets.map(([name, s]) => (

@@ -92,7 +92,7 @@ The thresholds above were chosen on the 24 calibration photos, then applied unch
 | Unrelated image pairs called *likely match* | 0 of 780 (closest pair 88 bits apart) |
 | Weakest transforms on fresh images | JPEG q20 80% read, brightness +15% 82% read, foreign paste 10% 42% read |
 
-So the calibration numbers mostly held, and the places they did not (q20, strong brightening) are listed rather than hidden. One photo in the held-out set is an outlier whose fingerprint drifts 18 to 30 bits under ordinary sharing; it accounts for most of the three false *altered* calls.
+So the calibration numbers mostly held, and the places they did not (q20, strong brightening) are listed rather than hidden. One caveat found afterwards: the stock-photo source maps different seeds to a finite pool, and one of the 40 held-out images turned out to be the same photo as a calibration image, so 39 of the 40 were truly unseen. One photo in the held-out set is an outlier whose fingerprint drifts 18 to 30 bits under ordinary sharing; it accounts for most of the three false *altered* calls.
 
 ### Cost and speed on Monad (`service/batch_bench.py`)
 

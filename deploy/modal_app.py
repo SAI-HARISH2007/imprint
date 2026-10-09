@@ -35,6 +35,7 @@ app = modal.App("imprint-api", image=image)
     timeout=300,
     scaledown_window=600,
     min_containers=0,
+    enable_memory_snapshot=True,  # model and imports are restored from a snapshot, so cold starts are short
 )
 @modal.concurrent(max_inputs=4)
 @modal.asgi_app()
@@ -45,6 +46,9 @@ def api():
     import os
 
     os.chdir("/app/service")
+    import core
+
+    core.payload_bits()  # load the watermark model now, so it is part of the snapshot
     from app import app as fastapi_app
 
     return fastapi_app

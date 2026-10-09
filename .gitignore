@@ -17,3 +17,4 @@ broadcast/*/10143/dry-run/
 phase1/images_bench/
 phase1/images_heldout/
 phase1/images_ai/
+.vercel/
