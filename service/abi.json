@@ -6,6 +6,19 @@
  },
  {
   "type": "function",
+  "name": "DISPUTE_MAX_DISTANCE",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
   "name": "REGISTER_TYPEHASH",
   "inputs": [],
   "outputs": [
@@ -56,6 +69,70 @@
  },
  {
   "type": "function",
+  "name": "disputeDuplicate",
+  "inputs": [
+   {
+    "name": "earlierId",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   },
+   {
+    "name": "laterId",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "disputeOf",
+  "inputs": [
+   {
+    "name": "watermarkId",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "tuple",
+    "internalType": "struct ImprintRegistry.Dispute",
+    "components": [
+     {
+      "name": "earlier",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     },
+     {
+      "name": "later",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     },
+     {
+      "name": "distance",
+      "type": "uint16",
+      "internalType": "uint16"
+     },
+     {
+      "name": "by",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "timestamp",
+      "type": "uint64",
+      "internalType": "uint64"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
   "name": "eip712Domain",
   "inputs": [],
   "outputs": [
@@ -100,6 +177,49 @@
  {
   "type": "function",
   "name": "exists",
+  "inputs": [
+   {
+    "name": "watermarkId",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "hammingDistance",
+  "inputs": [
+   {
+    "name": "a",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   },
+   {
+    "name": "b",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "isDisputed",
   "inputs": [
    {
     "name": "watermarkId",
@@ -358,6 +478,43 @@
  },
  {
   "type": "event",
+  "name": "RecordDisputed",
+  "inputs": [
+   {
+    "name": "earlier",
+    "type": "bytes32",
+    "indexed": true,
+    "internalType": "bytes32"
+   },
+   {
+    "name": "later",
+    "type": "bytes32",
+    "indexed": true,
+    "internalType": "bytes32"
+   },
+   {
+    "name": "distance",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "by",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "timestamp",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
   "name": "Registered",
   "inputs": [
    {
@@ -389,6 +546,17 @@
  },
  {
   "type": "error",
+  "name": "AlreadyDisputed",
+  "inputs": [
+   {
+    "name": "later",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ]
+ },
+ {
+  "type": "error",
   "name": "AlreadyRegistered",
   "inputs": [
    {
@@ -410,12 +578,55 @@
  },
  {
   "type": "error",
+  "name": "NotEarlier",
+  "inputs": [
+   {
+    "name": "earlier",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   },
+   {
+    "name": "later",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "NotSimilar",
+  "inputs": [
+   {
+    "name": "distance",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "maxDistance",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "type": "error",
   "name": "StringTooLong",
   "inputs": [
    {
     "name": "str",
     "type": "string",
     "internalType": "string"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "UnknownRecord",
+  "inputs": [
+   {
+    "name": "watermarkId",
+    "type": "bytes32",
+    "internalType": "bytes32"
    }
   ]
  },
