@@ -172,6 +172,9 @@ export function VerdictCard({ res }: { res: VerifyResult }) {
                 </span>
               )}
             </Fact>
+            <Fact k="Fingerprint">
+              <span className="mono text-xs">{res.algorithm}</span>
+            </Fact>
           </dl>
         </div>
         {res.record ? (
@@ -192,6 +195,10 @@ export function VerdictCard({ res }: { res: VerifyResult }) {
           </a>
         </div>
       )}
+      <div className="border-t border-line bg-paper2 px-6 py-4 text-xs text-ink2">
+        These thresholds are applied by the Imprint server. To check without trusting it, run the standalone{" "}
+        <span className="mono">imprint-verify</span> tool, which reads your image and Monad directly (see the README).
+      </div>
     </section>
   );
 }

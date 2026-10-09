@@ -20,6 +20,7 @@ export type VerifyResult = {
   watermark_present: boolean;
   watermark_id: string | null;
   fingerprint: string;
+  algorithm: string;
   record: Rec | null;
   earlier: Rec | null;
   registry: { address: string; chain_id: number; url: string };
@@ -32,7 +33,15 @@ export type MarkResult = {
   height: number;
   strength: number;
   self_test: { png: boolean; jpeg70: boolean };
+  claim: string;
+  claim_expires_in: number;
+};
+
+export type ClaimResult = {
+  watermark_id: string;
+  fingerprint: string;
   image_png_base64: string;
+  record: Rec | null;
 };
 
 export type Config = {
@@ -40,6 +49,8 @@ export type Config = {
   registry: string;
   registry_url: string;
   explorer: string;
+  fingerprint: { algorithm: string; version: number; bits: number; hex_length: number };
+  claim_ttl_seconds: number;
   thresholds: { match: number; near: number; duplicate: number };
 };
 
@@ -54,6 +65,7 @@ export type RegisterResult = {
   explorer_url: string;
   record: Rec | null;
   receipt: Receipt | null;
+  image_png_base64?: string;
 };
 
 export type Receipt = {
@@ -140,6 +152,8 @@ export const api = {
     }).then((r) => handle<ReceiptResult>(r)),
   mark: (file: Blob, name: string) =>
     fetch(`${API}/mark`, { method: "POST", body: form(file, name) }).then((r) => handle<MarkResult>(r)),
+  claim: (token: string) =>
+    fetch(`${API}/claim?token=${encodeURIComponent(token)}`).then((r) => handle<ClaimResult>(r)),
   challenge: (watermark_id: string, fingerprint: string) =>
     fetch(`${API}/challenge?watermark_id=${watermark_id}&fingerprint=0x${fingerprint}`).then((r) =>
       handle<{ challenge: string }>(r),
