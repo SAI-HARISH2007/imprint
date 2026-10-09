@@ -27,6 +27,18 @@ image = (
 
 app = modal.App("imprint-api", image=image)
 
+# Runs in the container's global scope, which is what the memory snapshot captures. Importing torch and
+# loading the watermark model here means a cold container restores with the model already in memory.
+with image.imports():
+    import os as _os
+    import sys as _sys
+
+    _sys.path.insert(0, "/app/service")
+    _os.chdir("/app/service")
+    import core as _core
+
+    _core.payload_bits()
+
 
 @app.function(
     secrets=[modal.Secret.from_name("imprint-relayer")],
@@ -40,15 +52,6 @@ app = modal.App("imprint-api", image=image)
 @modal.concurrent(max_inputs=2)  # matches IMPRINT_MAX_BUSY; the watermark model is serialized anyway
 @modal.asgi_app()
 def api():
-    import sys
-
-    sys.path.insert(0, "/app/service")
-    import os
-
-    os.chdir("/app/service")
-    import core
-
-    core.payload_bits()  # load the watermark model now, so it is part of the snapshot
-    from app import app as fastapi_app
+    from app import app as fastapi_app  # core and the model are already loaded (see above)
 
     return fastapi_app
