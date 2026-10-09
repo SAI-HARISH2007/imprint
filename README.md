@@ -5,6 +5,7 @@
 Built for the Monad Metropolis hackathon, Track 4 (Trust, Identity and AI Infrastructure), answering the brief line *"provenance for generated media that survives re-encoding"*.
 
 - Registry contract on Monad testnet: [`0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c`](https://testnet.monadvision.com/address/0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c) (chain 10143, source verified). The deployed bytecode is the contract as of commit `7e2ec49`. Two later additions in `contracts/src` — the `recordsPage` overflow clamp and the on-chain `disputeDuplicate` — are implemented and tested but **not redeployed** (the API never asks for pages larger than 100, and disputes are a source feature awaiting a redeploy).
+- **The current contract is `0xf4a792…` (records answer `count()`; 114 registered at time of writing).** An earlier deployment, [`0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664`](https://testnet.monadvision.com/address/0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664), is **retired** — it predates the enumerable registry (`count`/`recordsPage` revert on it) and holds no active path. A stale page render may still show it; `deployments/monad-testnet.json` records both and which one is current. Do not register against the retired address.
 - Live demo: https://imprint-ten-theta.vercel.app (API: https://sai-harish2007--imprint-api-api.modal.run)
 - Demo video: *link added at submission*
 
