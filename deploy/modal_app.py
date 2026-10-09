@@ -37,7 +37,7 @@ app = modal.App("imprint-api", image=image)
     min_containers=0,
     enable_memory_snapshot=True,  # model and imports are restored from a snapshot, so cold starts are short
 )
-@modal.concurrent(max_inputs=4)
+@modal.concurrent(max_inputs=2)  # matches IMPRINT_MAX_BUSY; the watermark model is serialized anyway
 @modal.asgi_app()
 def api():
     import sys

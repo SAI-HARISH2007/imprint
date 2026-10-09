@@ -4,7 +4,7 @@
 
 Built for the Monad Metropolis hackathon, Track 4 (Trust, Identity and AI Infrastructure), answering the brief line *"provenance for generated media that survives re-encoding"*.
 
-- Registry contract on Monad testnet: [`0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c`](https://testnet.monadvision.com/address/0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c) (chain 10143, source verified)
+- Registry contract on Monad testnet: [`0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c`](https://testnet.monadvision.com/address/0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c) (chain 10143, source verified). The deployed bytecode is the contract as of commit `7e2ec49`; the later `recordsPage` overflow clamp in `contracts/src` is tested but not yet redeployed, since the API never asks for pages larger than 100.
 - Live demo: https://imprint-ten-theta.vercel.app (API: https://sai-harish2007--imprint-api-api.modal.run)
 - Demo video: *link added at submission*
 
@@ -70,7 +70,7 @@ The service is a single FastAPI app (`service/app.py`). Read-only endpoints need
 | GET | `/config` | chain id, registry address, explorer, payload bits |
 | GET | `/status` | RPC/chain-id/registry-code diagnostics, record count, relayer balance |
 | POST | `/mark` | hide an ID in an image (returns the marked image) |
-| POST | `/check` | read an ID and fingerprint, return a verdict |
+| POST | `/check` | raw read: the hidden ID (if any) and the fingerprint, no registry lookup |
 | GET | `/challenge` | the EIP-712 challenge for a (ID, fingerprint) |
 | GET | `/signer?qx=&qy=` | derive the address for a passkey public key |
 | POST | `/register` | relay a passkey-signed registration, return the record and a receipt |
@@ -191,7 +191,7 @@ cd web && npm install && NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 
 ## Team
 
-Sai Haresh Anand S ([@SAI-HARISH2007](https://github.com/SAI-HARISH2007)) and Seshi Vardhini ([@seshivardhini2006](https://github.com/seshivardhini2006)). All code was written during the Metropolis build window. AI coding tools were used throughout; every number above comes from a script in this repository that anyone can rerun.
+Sai Haresh Anand S ([@SAI-HARISH2007](https://github.com/SAI-HARISH2007)) and Dulam Seshivardhini ([@seshivardhini2006](https://github.com/seshivardhini2006)). All code was written during the Metropolis build window. AI coding tools were used throughout; every number above comes from a script in this repository that anyone can rerun.
 
 ## License
 

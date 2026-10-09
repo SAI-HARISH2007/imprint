@@ -12,5 +12,7 @@
     "address": "0xF88Ab1f3E04Df4C8A6d5EAf3a64E3AC55095b664",
     "deployTx": "0xb4523bc15cd0f63f08b84ec397e11bb110a8392878fbd7140e2174fdb539c323",
     "note": "First deployment, no registrations. Replaced because the new version lets anyone list every registration with plain calls (count, recordsPage) and records the block number."
-  }
+  },
+  "sourceCommit": "7e2ec49",
+  "note": "Source at this commit is what Sourcify verified. contracts/src later gained an overflow-safe clamp in recordsPage (commit 48f0c38) that is not deployed."
 }
