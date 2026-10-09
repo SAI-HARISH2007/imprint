@@ -158,20 +158,29 @@ cases for a DCT hash: flat low-contrast and near-symmetric content) and enforces
 disjoint seed banks, and a content-hash check proves no overlap. The committed run
 (14 images per split) finds:
 
-- **Clean negatives:** the closest *unrelated* pair is 100 bits of 256 even in the
-  adversarial categories, with 0 false *near* and 0 false *duplicate* pairs, and
-  0/70 edits wrongly called *verified*.
-- **A real weakness, made visible:** synthetic texture drifts the fingerprint far
-  more than real photos — 36–42 of 84 ordinary-sharing checks land as *altered*
-  even though the watermark still decodes exactly. The 256-bit median threshold is
-  brittle on flat content; the honest remedy is a content-aware threshold, not a
-  looser one.
+- **Negatives, measured honestly:** on the committed 14-image run the closest
+  unrelated pair was 100 bits; at **1,400 images (100/category x 2 splits) the
+  closest unrelated pair is 2 bits** — the median-DCT hash collapses
+  low-texture content. 57 of 979,300 unrelated pairs fall within 16 bits, all
+  of them *different images with similar flat backgrounds* in the same
+  category (near-fake positives on logos/renders/screenshots, where the hash
+  is least reliable). See `docs/false-rejections.md`.
+- **A real weakness, made visible:** synthetic texture drifts the fingerprint
+  far more than real photos — 94–87 of 210 ordinary-sharing checks land as
+  *altered* on low-texture categories even though the watermark still decodes
+  exactly (**100% of those false *altered* calls had the ID decode**). Raising
+  the threshold is not the fix (headroom is ~8 bits before collisions); the
+  data-backed remedy is to treat a decoded ID as the strong signal and reserve
+  *altered* for edit-scale drift on low-texture content.
 - The watermark itself degrades as phase 1 found: solid to q50/resize, weak at q20,
   gone past 25% crops or paste.
 
 This complements, and does not replace, the real-photo sets; it is still
-synthetic, the committed sample is small, and real messaging/screenshot transfers
-remain unmeasured. Full method and numbers: `docs/evaluation.md`, `phase2/results/eval_Q.json`.
+synthetic, the committed sample is modest, and real messaging/screenshot
+transfers remain unmeasured. Full method and numbers: `docs/evaluation.md`,
+the false-rejection data and recommendation in `docs/false-rejections.md`, and
+`phase2/results/eval_Q.json` / `phase2/results/eval_Q5.json` /
+`phase2/results/investigate.json`.
 
 ### Cost and speed on Monad (`service/batch_bench.py`)
 
@@ -245,7 +254,7 @@ cd service && uvicorn app:app --port 8000
 cd web && npm install && NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 ```
 
-`service/e2e_testnet.py` runs the whole flow against the live registry with a software passkey. `service/test_service.py`, `service/test_hardening.py` (rate limits, input validation, receipts, the mark/claim race) and `service/test_fingerprint.py` / `test_claims.py` / `test_index.py` / `test_verifier.py` are the service tests, and `contracts/test` covers the contract (including the duplicate-scan gas measurement in `SimilarityCost.t.sol`). `phase2/test_corpus.py` tests the synthetic corpus and its leakage guard. `service/bench_lookup.py` reproduces the scaling numbers. The site checks itself with `npm run lint`, `npm run typecheck` and `npm run build`.
+`service/e2e_testnet.py` runs the whole flow against the live registry with a software passkey. `service/test_service.py`, `service/test_hardening.py` (rate limits, input validation, receipts, the mark/claim race) and `service/test_fingerprint.py` / `test_claims.py` / `test_index.py` / `test_verifier.py` are the service tests, and `contracts/test` covers the contract (including the duplicate-scan gas measurement in `SimilarityCost.t.sol`). `phase2/test_corpus.py` and `phase2/test_investigate.py` test the synthetic corpus, its leakage guard and the fingerprint recipe parity. `service/bench_lookup.py` reproduces the scaling numbers. The site checks itself with `npm run lint`, `npm run typecheck` and `npm run build`.
 
 ## Team
 

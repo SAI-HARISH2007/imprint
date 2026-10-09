@@ -93,6 +93,9 @@ def run_split(samples, tm, nbits, watermark: bool) -> dict:
             "normal_decode_rate": sum(r["decoded"] for r in normal) / len(normal),
             "max_normal_dist": max(r["dist"] for r in normal),
             "wrongly_altered": sum(1 for r in normal if r["verdict"] == "altered"),
+            "wrongly_altered_but_id_decoded": sum(
+                1 for r in normal if r["verdict"] == "altered" and r["decoded"]
+            ),
         }
     weak = sorted(per_image.items(), key=lambda kv: (kv[1]["normal_decode_rate"], -kv[1]["max_normal_dist"]))
 
@@ -107,6 +110,7 @@ def run_split(samples, tm, nbits, watermark: bool) -> dict:
             per_cat[cis] = {"min_unrelated_dist": min(ds), "median_unrelated_dist": statistics.median(ds)}
 
     wrong_altered = sum(p["wrongly_altered"] for p in per_image.values())
+    wrong_altered_decoded = sum(p["wrongly_altered_but_id_decoded"] for p in per_image.values())
     wrong_verified = sum(1 for r in rows if r["transform"] in EDIT_KEYS and r["verdict"] == "verified")
     return {
         "n_images": n,
@@ -115,6 +119,7 @@ def run_split(samples, tm, nbits, watermark: bool) -> dict:
         "weakest_images": [{"image": k, **v} for k, v in weak[:5]],
         "normal_sharing_mean_decode": statistics.mean(transforms[t]["decode_rate"] for t in NORMAL),
         "sharing_wrongly_altered": wrong_altered,
+        "sharing_wrongly_altered_but_id_decoded": wrong_altered_decoded,
         "sharing_checks": n * len(NORMAL),
         "edits_wrongly_verified": wrong_verified,
         "edit_checks": n * len(EDIT_KEYS),
