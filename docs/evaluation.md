@@ -29,63 +29,78 @@ never tuned here.
 
 ```bash
 cd phase2
-python evaluate.py --per-category 2                 # watermark + fingerprint
-python evaluate.py --per-category 500 --fingerprint-only   # scales to thousands, fast
-python evaluate.py --per-category 2 --json-out eval_Q.json
-python -m pytest test_corpus.py                     # fast corpus/leak tests
+python evaluate.py --per-category 5 --json-out eval_Q5.json   # reference watermark run
+python evaluate.py --per-category 500 --fingerprint-only      # scales to thousands, fast
+python investigate.py --per-category 100 --json-out investigate.json  # false-rejection sweep
+python -m pytest test_corpus.py test_investigate.py           # fast corpus/leak/recipe tests
 ```
 
 Runtime is dominated by the TrustMark encode/decode, not the image generation:
-the committed run below is 28 images (14 per split). Generating thousands is
-cheap; *marking* thousands is the slow part, which is why the watermark run is
-parameterised rather than fixed.
+the reference watermark run below is 35 images per split (1400 fingerprint-only
+is minutes). Generating thousands is cheap; *marking* hundreds is the slow part,
+which is why the watermark run is parameterised rather than fixed.
 
-## Results (committed run, `results/eval_Q.json`, 14 images per split)
+## Results (committed runs)
 
-Ordinary sharing, watermark and fingerprint:
+- `results/eval_Q.json` — 14 images per split, the original small demonstration.
+- `results/eval_Q5.json` — 35 images per split, the current reference run
+  (numbers below); it adds the "wrongly altered but ID decoded" split per image.
+- `results/investigate.json` — the 1,400-image, fingerprint-only false-rejection
+  sweep (see also `docs/false-rejections.md`).
+
+Ordinary sharing, watermark and fingerprint (`eval_Q5.json`, 35/split):
 
 | transform | calib decode | calib med/max drift | held-out decode | held-out med/max drift |
 |---|---|---|---|---|
 | identity | 100% | 0 / 0 | 100% | 0 / 0 |
-| png→jpeg q95 | 100% | 10 / 36 | 100% | 10 / 22 |
-| jpeg q90 | 100% | 12 / 42 | 100% | 14 / 28 |
-| jpeg q70 | 93% | 18 / 58 | 100% | 24 / 62 |
-| jpeg q50 | 79% | 28 / 78 | 71% | 25 / 76 |
-| resize 75 / 50 / 25 | 100% | 13–16 / 40–48 | 100% | 13–23 / 22–46 |
-| messenger | 93% | 18 / 58 | 100% | 24 / 62 |
-| screenshot-like | 100% | 23 / 52 | 93% | 26 / 44 |
-| crop 5% / 15% / 30% | 100% / 100% / 0% | 44 / 107 / 119 | 100% / 100% / 0% | 53 / 110 / 119 |
-| brightness ±15% | 100% | 13–21 / 66–68 | 100% | 14–20 / 44–50 |
-| edit paste 10% / 25% | 79% / 0% | 90 / 105 | 64% / 7% | 77 / 89 |
+| png→jpeg q95 | 100% | 12 / 38 | 100% | 12 / 32 |
+| jpeg q90 | 100% | 14 / 34 | 100% | 14 / 38 |
+| jpeg q70 | 94% | 22 / 58 | 97% | 22 / 72 |
+| jpeg q50 | 80% | 24 / 80 | 77% | 24 / 96 |
+| jpeg q30 | 66% | 30 / 96 | 54% | 32 / 94 |
+| jpeg q20 | 34% | 40 / 92 | 26% | 40 / 110 |
+| resize 75 / 50 / 25 | 100% each | 10–18 / 34–42 | 100% each | 12–16 / 44–56 |
+| messenger | 94% | 22 / 58 | 97% | 22 / 72 |
+| screenshot-like | 89% | 28 / 56 | 94% | 20 / 52 |
+| crop 5% / 15% / 30% | 100% / 100% / 0% | 42 / 102 / 116 | 100% / 100% / 0% | 48 / 104 / 120 |
+| brightness ±15% | 100% | 14–20 / 54–62 | 100% | 12–20 / 46–64 |
+| contrast +15% | 97% | 18 / 58 | 100% | 16 / 52 |
+| edit paste 10% / 25% | 71% / 6% | 84 / 88 | 63% / 6% | 64 / 84 |
 
 Negative controls and the leakage guard:
 
 | | calibration | held-out |
 |---|---|---|
-| unrelated pairs, minimum distance | 100 bits | 100 bits |
-| false *likely-match* pairs (≤24) | 0 | 0 |
-| false *duplicate* pairs (≤10) | 0 | 0 |
-| per-category unrelated minimum | 100–126 | 100–154 |
-| edits wrongly called *verified* | 0 / 70 | 0 / 70 |
+| unrelated pairs, minimum distance | 80 bits | 64 bits |
+| `/verify` false *altered* but **ID decoded** | 94 / 94 | 87 / 87 |
+| edits wrongly called *verified* | 1 / 175 | 0 / 175 |
 | leakage guard | passed | passed |
 
-## What this run shows
+The 1,400-image sweep overturns the tidy negatives of the 14-image run: the
+global unrelated minimum drops to **2 bits**, with **57 of 979,300 pairs**
+within 16 bits — all *different images with the same flat background* (gradient
+27, portraitish-proxy 29, texture 1; nearest distances 2–4). See
+`docs/false-rejections.md`.
 
-1. **The negatives are clean.** Even the adversarial categories
-   (`lowcontrast`, `symmetry`) never put two unrelated images within the
-   near-match radius; the closest unrelated pair across all categories is 100
-   bits of 256. No false provenance.
-2. **Edits are never mistaken for the original** (0/70 wrongly *verified*),
+## What these runs show
+
+1. **At scale, low-entropy content collapses the hash.** The median-DCT
+   fingerprint cannot separate different images that share a flat/low-texture
+   background — the closest unrelated pair at 1,400 images is 2 bits.
+   The 14-image run (min 100 bits, 0 false pairs) was a small-sample artifact.
+2. **Every false *altered* call had the watermark ID decoded.** The ID is the
+   reliable signal; on low-texture content the fingerprint is a weak negative.
+   Raising thresholds is not the fix — headroom is ~8 bits before unrelated
+   collisions — so the recommendation is a decision-rule change (decoded ID is
+   authoritative; reserve *altered* for edit-scale drift), not a re-tune.
+3. **Edits are never mistaken for the original** (0–1/175 wrongly *verified*),
    which is the property that matters for the "altered" verdict.
-3. **A real weakness, made visible:** synthetic texture drifts the fingerprint
+4. **A real weakness, made visible:** synthetic texture drifts the fingerprint
    *much* more than real photos. In phase 1, ordinary sharing stayed within ~12
    bits; here even `png→jpeg q95` has a median drift of 10 and a max of 36, so
-   **36–42 of 84 ordinary-sharing checks are labelled *altered*** — while the
-   watermark still decodes exactly (100% for q95/q90). On flat/low-texture
-   content the 256-bit median threshold is brittle, and the fix is a
-   per-category or content-aware threshold (or a larger hash grid), not a
-   weaker one.
-4. **The watermark degrades as expected**: robust to resize and q50+, weak at
+   94–87 of 210 ordinary-sharing checks are labelled *altered* on flat/low-texture
+   content while the watermark still decodes exactly.
+5. **The watermark degrades as expected**: robust to resize and q50+, weak at
    q20 (14–36% decode) and gone past 25% crops or 25% paste — matching phase 1.
 
 ## Limits (stated plainly)
@@ -93,9 +108,9 @@ Negative controls and the leakage guard:
 - These are **synthetic** images. They stress the fingerprint with texture the
   real photos do not, which is why they find the drift; but they do not
   reproduce sensor noise, lens blur or real compression pipelines.
-- The committed run is 14 images per split. It is a demonstration of the
-  harness, not the "thousands of images" target; scaling the corpus is a command
-  away, and scaling the *watermark* run needs compute.
+- The reference run is 35 images per split for the watermark and 100 per
+  category for the fingerprint-only sweep; both are reproducible commands, and
+  the watermark run scales with compute.
 - Still not covered by any suite: real WhatsApp/Telegram transfers and real
   phone screenshots, and a large AI-generated set. Those remain open and are
   listed as such.

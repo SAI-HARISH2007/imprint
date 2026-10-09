@@ -197,7 +197,7 @@ the false-rejection data and recommendation in `docs/false-rejections.md`, and
 
 ### Not yet measured
 
-Real WhatsApp and Telegram transfers (the simulated versions are above), and real phone screenshots. These are listed as open until they are done.
+Real WhatsApp and Telegram transfers (the simulated versions are above), and real phone screenshots. These are listed as open until they are done. The capture protocol, the manifest schema and the offline checker are committed (`phase2/channels.py`, `docs/real-world-testing.md`); producing the captures needs a phone, the apps and a second device, so it is spelled out rather than faked. The end-to-end read latency that would justify an index is measured today, live, in `docs/scaling.md` (`service/bench_verify.py`). The pilot that would validate a paying creator use case is planned in `docs/validation.md` and is external to this repo.
 
 ## Prior art, and what is different here
 
@@ -227,12 +227,14 @@ A C2PA manifest could carry the Imprint ID and registration transaction as a sof
 ```
 contracts/   ImprintRegistry.sol (Foundry), tests, deploy script
 service/     FastAPI image service and relay: mark, check, verify, stress, register, receipts
-             plus fingerprint.py (spec), claims.py, index.py, imprint_verify.py (standalone checker)
+             plus fingerprint.py (spec), claims.py, index.py, imprint_verify.py (standalone checker),
+             bench_lookup.py / bench_verify.py (latency measurement)
 web/         Next.js site: register, check, receipt, my work, stress test, evidence, record pages
 phase1/      benchmark scripts and raw results (results/*.json)
-phase2/      leak-checked synthetic evaluation harness (corpus, evaluate, results)
-docs/        fingerprint spec, enforcement boundary, verifier, evaluation, scaling,
-             on-chain duplicates, C2PA and Merkle-batch notes
+phase2/      leak-checked synthetic evaluation harness (corpus, evaluate, investigate) and
+             the real-world channel capture protocol (channels.py; captures stay git-ignored)
+docs/        fingerprint spec, enforcement boundary, verifier, evaluation, false rejections,
+             scaling, on-chain duplicates, real-world testing, validation plan, C2PA notes
 deploy/      Dockerfile and build script for the API
 deployments/ addresses and transaction hashes
 ```

@@ -1,7 +1,9 @@
 # Scaling lookup and verification
 
 How the registry behaves as it grows, measured, and what would actually have to
-change. Command: `python service/bench_lookup.py` (reproducible, seeded).
+change. Commands: `python service/bench_lookup.py` (reproducible, seeded) for the
+CPU hit, `python service/bench_verify.py` (read-only, live RPC) for the
+end-to-end read path.
 
 ## The lookup itself is not the bottleneck
 
@@ -45,6 +47,24 @@ Hamming math. The `/records` and `/status` endpoints and the verifier's
 `--max-records` guard already bound this, but bounding it is not the same as
 solving it.
 
+### Measured end-to-end today (`python service/bench_verify.py`, read-only, live registry)
+
+| records | pages | fetch (measured RPC) | compare (CPU) | worst-case line scan |
+|---|---:|---:|---:|---:|
+| 114 (live) | 2 | 0.82 s | 0.01 ms | 0.82 s |
+| 1,000 | 10 | 4.1 s | 0.09 ms | 4.1 s |
+| 10,000 | 100 | 41 s | 0.9 ms | 41 s |
+| 100,000 | 1,000 | 6.8 min | 8.9 ms | 6.8 min |
+
+The direct `/verify` path with a known ID is one `recordOf` call (~0.3 s),
+independent of size. Only the near-duplicate / find-by-scan paths enumerate.
+The gate for any index work is therefore: **enable nothing until the measured
+worst-case scan at the registry size we actually serve exceeds the latency
+budget** (a scan over the full registry is several seconds from ~1k records on a
+public testnet RPC), and then only an index that provably removes *fetching*
+helps — a tree that still fetches every record first (as `IMPRINT_INDEX` does
+today) cannot.
+
 ## Options, evaluated
 
 | Option | Helps writes | Helps reads at scale | Cost / risk | Verdict |
@@ -76,3 +96,7 @@ justified by measurement.
 4. Any such addition must be justified by a **new measurement of the end-to-end
    read path** (fetch + proof verify) showing it beats a plain scan — not by
    assuming a tree is faster. This repository's habit is to measure first.
+   `bench_verify.py` is that measurement and the gate: the worst-case scan is
+   fetch-bound from ~1k records on a public RPC, so any proposed index must
+   either be populated without fetching everything first, or prove it removes
+   the fetch. It also re-measures the live registry's own latency on every run.
