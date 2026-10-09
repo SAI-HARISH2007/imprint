@@ -33,11 +33,12 @@ with image.imports():
     import os as _os
     import sys as _sys
 
-    _sys.path.insert(0, "/app/service")
-    _os.chdir("/app/service")
-    import core as _core
+    if _os.path.isdir("/app/service"):  # only inside the container; this block also runs locally at deploy time
+        _sys.path.insert(0, "/app/service")
+        _os.chdir("/app/service")
+        import core as _core
 
-    _core.payload_bits()
+        _core.payload_bits()
 
 
 @app.function(
