@@ -1,0 +1,207 @@
+{
+ "thresholds": {
+  "match": 16,
+  "near": 24,
+  "duplicate": 10
+ },
+ "sets": {
+  "photos": {
+   "n_images": 40,
+   "per_transform": {
+    "identity": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 0.0,
+     "max_dist": 0
+    },
+    "png_to_jpeg_q95": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 0.0,
+     "max_dist": 12
+    },
+    "jpeg_q90": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 0.0,
+     "max_dist": 10
+    },
+    "jpeg_q70": {
+     "decode_rate": 0.975,
+     "verdicts": {
+      "verified": 38,
+      "likely_match": 1,
+      "altered": 1
+     },
+     "median_dist": 0.0,
+     "max_dist": 18
+    },
+    "jpeg_q50": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 39,
+      "altered": 1
+     },
+     "median_dist": 2.0,
+     "max_dist": 22
+    },
+    "jpeg_q30": {
+     "decode_rate": 0.975,
+     "verdicts": {
+      "verified": 38,
+      "likely_match": 1,
+      "altered": 1
+     },
+     "median_dist": 2.0,
+     "max_dist": 22
+    },
+    "jpeg_q20": {
+     "decode_rate": 0.8,
+     "verdicts": {
+      "verified": 31,
+      "likely_match": 8,
+      "altered": 1
+     },
+     "median_dist": 2.0,
+     "max_dist": 30
+    },
+    "resize_75": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 0.0,
+     "max_dist": 10
+    },
+    "resize_50": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 0.0,
+     "max_dist": 12
+    },
+    "resize_25": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 1.0,
+     "max_dist": 14
+    },
+    "messenger": {
+     "decode_rate": 0.975,
+     "verdicts": {
+      "verified": 38,
+      "likely_match": 1,
+      "altered": 1
+     },
+     "median_dist": 0.0,
+     "max_dist": 18
+    },
+    "screenshot_like": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 39,
+      "altered": 1
+     },
+     "median_dist": 2.0,
+     "max_dist": 20
+    },
+    "crop_5": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 39,
+      "verified": 1
+     },
+     "median_dist": 39.0,
+     "max_dist": 78
+    },
+    "crop_15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 40
+     },
+     "median_dist": 101.0,
+     "max_dist": 140
+    },
+    "crop_30": {
+     "decode_rate": 0.0,
+     "verdicts": {
+      "not_found": 40
+     },
+     "median_dist": 126.0,
+     "max_dist": 162
+    },
+    "brightness_p15": {
+     "decode_rate": 0.825,
+     "verdicts": {
+      "verified": 32,
+      "likely_match": 6,
+      "not_found": 1,
+      "altered": 1
+     },
+     "median_dist": 6.0,
+     "max_dist": 30
+    },
+    "brightness_m15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 2.0,
+     "max_dist": 14
+    },
+    "contrast_p15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 39,
+      "altered": 1
+     },
+     "median_dist": 2.0,
+     "max_dist": 18
+    },
+    "blur_light": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 40
+     },
+     "median_dist": 0.0,
+     "max_dist": 10
+    },
+    "edit_paste_10pct": {
+     "decode_rate": 0.425,
+     "verdicts": {
+      "not_found": 23,
+      "altered": 17
+     },
+     "median_dist": 56.0,
+     "max_dist": 118
+    },
+    "edit_paste_25pct": {
+     "decode_rate": 0.0,
+     "verdicts": {
+      "not_found": 40
+     },
+     "median_dist": 82.0,
+     "max_dist": 136
+    }
+   },
+   "normal_sharing_mean_decode": 0.9916666666666667,
+   "sharing_wrongly_altered": 3,
+   "sharing_checks": 240,
+   "edits_wrongly_verified": 1,
+   "edit_checks": 200,
+   "unrelated_pairs": 780,
+   "unrelated_min_dist": 88,
+   "false_likely_match_pairs": 0,
+   "false_duplicate_pairs": 0
+  }
+ }
+}

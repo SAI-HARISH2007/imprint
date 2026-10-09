@@ -1,4 +1,7 @@
 import ev from "@/lib/evidence.json";
+import heldout from "@/lib/heldout.json";
+import batch from "@/lib/batch.json";
+import { BatchSection, HeldoutSection, type Batch, type Heldout } from "./sections";
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const GROUP_TITLE: Record<string, string> = {
@@ -26,8 +29,9 @@ export default function EvidencePage() {
             WhatsApp or Telegram traffic and it has no AI-generated images yet.
           </li>
           <li>
-            The thresholds were chosen after looking at this same set. A held-out evaluation, with thresholds fixed on a
-            separate calibration set first, is not done. Treat these numbers as development results.
+            The thresholds were chosen after looking at this set (the calibration set). They were then applied unchanged
+            to 40 fresh photos the thresholds had never seen; that held-out result is further down, and it is the one to
+            trust.
           </li>
           <li>
             24 images per row supports a per-row rate of roughly 88% or better at 95% confidence even when every image
@@ -163,13 +167,16 @@ export default function EvidencePage() {
         </ul>
       </section>
 
+      <HeldoutSection data={heldout as Heldout} />
+
+      <BatchSection data={batch as Batch} />
+
       <section className="rounded-2xl border border-line bg-card p-6">
         <h2 className="display text-3xl">Still to do</h2>
         <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-ink2">
-          <li>Real WhatsApp and Telegram transfers.</li>
-          <li>AI-generated images in the test set.</li>
-          <li>Calibration and held-out split.</li>
-          <li>Registration cost and latency over a batch of 100.</li>
+          <li>Real WhatsApp and Telegram transfers, and real phone screenshots.</li>
+          <li>AI-generated images in the held-out set.</li>
+          <li>A larger held-out set; 40 images is modest.</li>
         </ul>
       </section>
     </div>

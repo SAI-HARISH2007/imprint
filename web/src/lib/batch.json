@@ -1,0 +1,27 @@
+{
+ "contract": "0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c",
+ "chain_id": 10143,
+ "part_a": {
+  "n": 60,
+  "total_s": 413.6,
+  "spent_mon": 1.0613,
+  "register_s_median": 4.81,
+  "register_s_p90": 5.42,
+  "chain_s_median": 1.59,
+  "mark_s_median": 0.6,
+  "gas_median": 173420.0,
+  "gwei_median": 102.0,
+  "cost_mon_median": 0.01768884
+ },
+ "part_b": {
+  "m": 20,
+  "landed": 20,
+  "sent_s": 4.0,
+  "confirmed_s": 7.36,
+  "blocks": 12,
+  "first_block": 69410349,
+  "last_block": 69410361,
+  "spent_mon": 0.408
+ },
+ "balance_after_mon": 2.783
+}

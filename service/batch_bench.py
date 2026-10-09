@@ -29,7 +29,7 @@ import os
 API = os.getenv("IMPRINT_BENCH_API", "http://localhost:8000")
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 60
 M = int(sys.argv[2]) if len(sys.argv) > 2 else 20
-OUT = Path(__file__).parent.parent / "phase1" / "results" / "batch_bench.json"
+OUT = Path(os.getenv("IMPRINT_BENCH_OUT", str(Path(__file__).parent.parent / "phase1" / "results" / "batch_bench.json")))
 
 w3 = chain.w3()
 c = chain.contract()
@@ -66,7 +66,9 @@ rows = []
 b0 = bal()
 t_all = time.time()
 for i in range(N):
-    img = bench_image(i)
+    if i and i % 10 == 0:
+        pass
+    img = bench_image(i + int(os.getenv("IMPRINT_BENCH_OFFSET", "0")))
     t0 = time.time()
     m = requests.post(f"{API}/mark", files={"file": (f"b{i}.png", png_bytes(img), "image/png")}).json()
     t_mark = time.time() - t0
@@ -86,7 +88,7 @@ for i in range(N):
     cost = rc["gasUsed"] * rc["effectiveGasPrice"] / 1e18
     rows.append({"i": i, "mark_s": round(t_mark, 2), "register_s": round(t_reg, 2), "chain_s": j["seconds"],
                  "gas": rc["gasUsed"], "gwei": rc["effectiveGasPrice"] / 1e9, "cost_mon": cost, "block": j["block"]})
-    if i % 10 == 0:
+    if True:
         print(f"  {i}: mark {t_mark:.2f}s, register {t_reg:.2f}s (chain {j['seconds']}s), {rc['gasUsed']} gas, {cost:.4f} MON", flush=True)
 a_total = time.time() - t_all
 a_spent = b0 - bal()
@@ -94,9 +96,9 @@ print(f"part A: {len(rows)} registrations in {a_total:.0f}s, spent {a_spent:.3f}
 
 # ---------------------------------------------------------------- part B
 prior = json.loads(OUT.read_text()) if OUT.exists() else {}
-if M == 0 and "part_b" in prior:
-    part_b = prior["part_b"]
-    print("part B: reused earlier result")
+if M == 0:
+    part_b = prior.get("part_b")
+    print("part B: skipped" + (", reused earlier result" if part_b else ""))
 else:
     part_b = None
 if part_b is None:

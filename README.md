@@ -80,6 +80,26 @@ Unrelated images differ by at least 102 bits (median 128). No unmarked original 
 
 **Combined damage** (`phase1/combos.py`): resize 50% + JPEG q70 24/24; resize 75% + q50 24/24; **resize 50% + q50 22/24**; resize 25% + q60 9/12 on 1024 px images but 12/12 on 3000 px images. Harsh combinations fail on a minority of images, and small images fail more than large ones. When the mark is lost, the fingerprint usually still gives "likely match".
 
+### Held-out check with the thresholds fixed in advance (40 fresh photos, `phase1/heldout.py`)
+
+The thresholds above were chosen on the 24 calibration photos, then applied unchanged to 40 photos at mixed sizes and orientations that they had never seen.
+
+| | Held-out result |
+|---|---|
+| Ordinary sharing, mark read (mean of 6 transforms) | 99% |
+| Sharing copies wrongly called *altered* | 3 of 240 |
+| Edits wrongly called *verified* | 1 of 200 |
+| Unrelated image pairs called *likely match* | 0 of 780 (closest pair 88 bits apart) |
+| Weakest transforms on fresh images | JPEG q20 80% read, brightness +15% 82% read, foreign paste 10% 42% read |
+
+So the calibration numbers mostly held, and the places they did not (q20, strong brightening) are listed rather than hidden. One photo in the held-out set is an outlier whose fingerprint drifts 18 to 30 bits under ordinary sharing; it accounts for most of the three false *altered* calls.
+
+### Cost and speed on Monad (`service/batch_bench.py`)
+
+- **60 registrations through the real product path** (mark, passkey assertion, relay, receipt), one after another: **0.0177 MON each** (173,420 gas at 102 gwei), **1.59 s median from send to receipt**. 1.06 MON for all 60.
+- **A burst of 20** sent at once from one key: all 20 landed, confirmed in 7.4 s across 12 blocks. 0.41 MON.
+- One run, one day, testnet gas price. Numbers are what we saw, not a guarantee.
+
 ### Attacks we tried
 
 - **Registering someone else's image first.** Re-marking an already marked image replaced its ID 24/24 times, so the mark alone cannot stop this. The fingerprint can: the re-marked copy stayed within 6 bits of the original. Imprint refuses such a registration (`409 near_duplicate`), and the checker marks a later look-alike as *disputed*. Re-registering your own image with your own passkey is allowed.
@@ -108,7 +128,7 @@ A C2PA manifest could carry the Imprint ID and registration transaction as a sof
 
 - Proves registration, not authorship.
 - The mark is removable by someone who knows the library. Crops above about 20% and rotation defeat it.
-- Thresholds are provisional; the held-out set is modest in size.
+- Thresholds were fixed on 24 photos and checked on 40; both sets are modest, and the held-out set has no AI-generated images yet.
 - The relayer is a single testnet wallet with a daily cap. A real deployment would let apps run their own.
 - Testnet only. Nothing here has been audited.
 

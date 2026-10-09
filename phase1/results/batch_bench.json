@@ -2,76 +2,616 @@
  "contract": "0xf4a792ddb0c83Bdf1Ed2E1220B197760d821396c",
  "chain_id": 10143,
  "part_a": {
-  "n": 6,
-  "total_s": 40.0,
-  "spent_mon": 0.1061,
-  "register_s_median": 4.62,
-  "register_s_p90": 5.48,
-  "chain_s_median": 1.505,
-  "mark_s_median": 0.595,
-  "gas_median": 173413.0,
+  "n": 60,
+  "total_s": 413.6,
+  "spent_mon": 1.0613,
+  "register_s_median": 4.81,
+  "register_s_p90": 5.42,
+  "chain_s_median": 1.59,
+  "mark_s_median": 0.6,
+  "gas_median": 173420.0,
   "gwei_median": 102.0,
-  "cost_mon_median": 0.017688126,
+  "cost_mon_median": 0.01768884,
   "rows": [
    {
     "i": 0,
-    "mark_s": 0.98,
-    "register_s": 6.12,
-    "chain_s": 1.81,
+    "mark_s": 0.66,
+    "register_s": 4.19,
+    "chain_s": 1.35,
     "gas": 173420,
     "gwei": 102.0,
     "cost_mon": 0.01768884,
-    "block": 69410228
+    "block": 69410872
    },
    {
     "i": 1,
-    "mark_s": 0.58,
-    "register_s": 4.62,
-    "chain_s": 1.52,
+    "mark_s": 0.54,
+    "register_s": 4.21,
+    "chain_s": 1.36,
     "gas": 173420,
     "gwei": 102.0,
     "cost_mon": 0.01768884,
-    "block": 69410249
+    "block": 69410895
    },
    {
     "i": 2,
-    "mark_s": 0.6,
-    "register_s": 4.19,
-    "chain_s": 1.37,
-    "gas": 173420,
-    "gwei": 102.0,
-    "cost_mon": 0.01768884,
-    "block": 69410268
-   },
-   {
-    "i": 3,
-    "mark_s": 0.59,
-    "register_s": 5.48,
-    "chain_s": 1.62,
+    "mark_s": 0.51,
+    "register_s": 4.63,
+    "chain_s": 1.59,
     "gas": 173406,
     "gwei": 102.0,
     "cost_mon": 0.017687412,
-    "block": 69410289
+    "block": 69410914
    },
    {
-    "i": 4,
-    "mark_s": 0.64,
-    "register_s": 4.62,
-    "chain_s": 1.49,
+    "i": 3,
+    "mark_s": 0.48,
+    "register_s": 4.82,
+    "chain_s": 1.78,
     "gas": 173392,
     "gwei": 102.0,
     "cost_mon": 0.017685984,
-    "block": 69410311
+    "block": 69410934
+   },
+   {
+    "i": 4,
+    "mark_s": 0.85,
+    "register_s": 4.2,
+    "chain_s": 1.4,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69410956
    },
    {
     "i": 5,
-    "mark_s": 0.51,
-    "register_s": 4.37,
+    "mark_s": 0.79,
+    "register_s": 4.7,
+    "chain_s": 1.73,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69410978
+   },
+   {
+    "i": 6,
+    "mark_s": 0.66,
+    "register_s": 4.75,
     "chain_s": 1.45,
     "gas": 173406,
     "gwei": 102.0,
     "cost_mon": 0.017687412,
-    "block": 69410330
+    "block": 69411000
+   },
+   {
+    "i": 7,
+    "mark_s": 1.71,
+    "register_s": 5.42,
+    "chain_s": 1.74,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411024
+   },
+   {
+    "i": 8,
+    "mark_s": 1.25,
+    "register_s": 5.39,
+    "chain_s": 1.66,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411055
+   },
+   {
+    "i": 9,
+    "mark_s": 0.85,
+    "register_s": 4.17,
+    "chain_s": 1.36,
+    "gas": 173392,
+    "gwei": 102.0,
+    "cost_mon": 0.017685984,
+    "block": 69411082
+   },
+   {
+    "i": 10,
+    "mark_s": 0.56,
+    "register_s": 4.59,
+    "chain_s": 1.57,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411100
+   },
+   {
+    "i": 11,
+    "mark_s": 0.91,
+    "register_s": 4.38,
+    "chain_s": 1.57,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411125
+   },
+   {
+    "i": 12,
+    "mark_s": 0.48,
+    "register_s": 4.76,
+    "chain_s": 1.5,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411143
+   },
+   {
+    "i": 13,
+    "mark_s": 0.53,
+    "register_s": 4.88,
+    "chain_s": 1.65,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411167
+   },
+   {
+    "i": 14,
+    "mark_s": 0.51,
+    "register_s": 5.32,
+    "chain_s": 1.59,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411189
+   },
+   {
+    "i": 15,
+    "mark_s": 0.59,
+    "register_s": 4.94,
+    "chain_s": 1.65,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411212
+   },
+   {
+    "i": 16,
+    "mark_s": 0.52,
+    "register_s": 3.63,
+    "chain_s": 0.84,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411233
+   },
+   {
+    "i": 17,
+    "mark_s": 0.61,
+    "register_s": 5.23,
+    "chain_s": 1.7,
+    "gas": 173392,
+    "gwei": 102.0,
+    "cost_mon": 0.017685984,
+    "block": 69411253
+   },
+   {
+    "i": 18,
+    "mark_s": 0.57,
+    "register_s": 4.94,
+    "chain_s": 1.55,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411274
+   },
+   {
+    "i": 19,
+    "mark_s": 1.56,
+    "register_s": 4.48,
+    "chain_s": 1.37,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411300
+   },
+   {
+    "i": 20,
+    "mark_s": 0.59,
+    "register_s": 4.68,
+    "chain_s": 1.72,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411323
+   },
+   {
+    "i": 21,
+    "mark_s": 0.58,
+    "register_s": 4.49,
+    "chain_s": 1.55,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411346
+   },
+   {
+    "i": 22,
+    "mark_s": 0.55,
+    "register_s": 5.42,
+    "chain_s": 1.63,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411369
+   },
+   {
+    "i": 23,
+    "mark_s": 0.66,
+    "register_s": 4.36,
+    "chain_s": 1.37,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411389
+   },
+   {
+    "i": 24,
+    "mark_s": 0.56,
+    "register_s": 4.66,
+    "chain_s": 1.56,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411411
+   },
+   {
+    "i": 25,
+    "mark_s": 0.64,
+    "register_s": 4.8,
+    "chain_s": 1.41,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411431
+   },
+   {
+    "i": 26,
+    "mark_s": 0.56,
+    "register_s": 5.09,
+    "chain_s": 1.72,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411455
+   },
+   {
+    "i": 27,
+    "mark_s": 0.49,
+    "register_s": 4.82,
+    "chain_s": 1.65,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411478
+   },
+   {
+    "i": 28,
+    "mark_s": 0.63,
+    "register_s": 5.73,
+    "chain_s": 1.73,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411503
+   },
+   {
+    "i": 29,
+    "mark_s": 0.6,
+    "register_s": 4.64,
+    "chain_s": 1.66,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411525
+   },
+   {
+    "i": 30,
+    "mark_s": 0.61,
+    "register_s": 6.05,
+    "chain_s": 1.82,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411548
+   },
+   {
+    "i": 31,
+    "mark_s": 0.52,
+    "register_s": 4.61,
+    "chain_s": 1.35,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411572
+   },
+   {
+    "i": 32,
+    "mark_s": 0.63,
+    "register_s": 4.81,
+    "chain_s": 1.36,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411593
+   },
+   {
+    "i": 33,
+    "mark_s": 0.57,
+    "register_s": 4.15,
+    "chain_s": 1.39,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411617
+   },
+   {
+    "i": 34,
+    "mark_s": 0.83,
+    "register_s": 4.8,
+    "chain_s": 1.53,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411637
+   },
+   {
+    "i": 35,
+    "mark_s": 0.51,
+    "register_s": 4.53,
+    "chain_s": 1.59,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411660
+   },
+   {
+    "i": 36,
+    "mark_s": 0.55,
+    "register_s": 5.19,
+    "chain_s": 1.52,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411682
+   },
+   {
+    "i": 37,
+    "mark_s": 0.69,
+    "register_s": 4.81,
+    "chain_s": 1.38,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411705
+   },
+   {
+    "i": 38,
+    "mark_s": 0.61,
+    "register_s": 5.16,
+    "chain_s": 1.8,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411725
+   },
+   {
+    "i": 39,
+    "mark_s": 0.64,
+    "register_s": 4.85,
+    "chain_s": 1.92,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411746
+   },
+   {
+    "i": 40,
+    "mark_s": 0.52,
+    "register_s": 4.19,
+    "chain_s": 1.34,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411766
+   },
+   {
+    "i": 41,
+    "mark_s": 0.56,
+    "register_s": 4.13,
+    "chain_s": 1.38,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411787
+   },
+   {
+    "i": 42,
+    "mark_s": 0.53,
+    "register_s": 5.53,
+    "chain_s": 1.63,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411809
+   },
+   {
+    "i": 43,
+    "mark_s": 0.9,
+    "register_s": 5.13,
+    "chain_s": 1.74,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411832
+   },
+   {
+    "i": 44,
+    "mark_s": 0.62,
+    "register_s": 5.63,
+    "chain_s": 1.73,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411857
+   },
+   {
+    "i": 45,
+    "mark_s": 0.85,
+    "register_s": 4.77,
+    "chain_s": 1.66,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411882
+   },
+   {
+    "i": 46,
+    "mark_s": 0.47,
+    "register_s": 4.83,
+    "chain_s": 1.45,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411907
+   },
+   {
+    "i": 47,
+    "mark_s": 0.51,
+    "register_s": 5.02,
+    "chain_s": 1.65,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69411927
+   },
+   {
+    "i": 48,
+    "mark_s": 0.54,
+    "register_s": 4.38,
+    "chain_s": 1.49,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411951
+   },
+   {
+    "i": 49,
+    "mark_s": 0.67,
+    "register_s": 5.22,
+    "chain_s": 1.54,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69411969
+   },
+   {
+    "i": 50,
+    "mark_s": 0.69,
+    "register_s": 5.15,
+    "chain_s": 1.72,
+    "gas": 173392,
+    "gwei": 102.0,
+    "cost_mon": 0.017685984,
+    "block": 69411992
+   },
+   {
+    "i": 51,
+    "mark_s": 1.26,
+    "register_s": 5.15,
+    "chain_s": 1.68,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69412020
+   },
+   {
+    "i": 52,
+    "mark_s": 0.52,
+    "register_s": 5.22,
+    "chain_s": 1.52,
+    "gas": 173406,
+    "gwei": 102.0,
+    "cost_mon": 0.017687412,
+    "block": 69412043
+   },
+   {
+    "i": 53,
+    "mark_s": 0.68,
+    "register_s": 4.51,
+    "chain_s": 1.51,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69412065
+   },
+   {
+    "i": 54,
+    "mark_s": 0.51,
+    "register_s": 4.92,
+    "chain_s": 1.63,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69412085
+   },
+   {
+    "i": 55,
+    "mark_s": 0.51,
+    "register_s": 5.06,
+    "chain_s": 1.7,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69412106
+   },
+   {
+    "i": 56,
+    "mark_s": 0.62,
+    "register_s": 5.73,
+    "chain_s": 1.63,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69412134
+   },
+   {
+    "i": 57,
+    "mark_s": 0.6,
+    "register_s": 4.31,
+    "chain_s": 1.36,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69412157
+   },
+   {
+    "i": 58,
+    "mark_s": 1.34,
+    "register_s": 4.79,
+    "chain_s": 1.7,
+    "gas": 173392,
+    "gwei": 102.0,
+    "cost_mon": 0.017685984,
+    "block": 69412179
+   },
+   {
+    "i": 59,
+    "mark_s": 0.61,
+    "register_s": 4.99,
+    "chain_s": 1.67,
+    "gas": 173420,
+    "gwei": 102.0,
+    "cost_mon": 0.01768884,
+    "block": 69412203
    }
   ]
  },
@@ -85,5 +625,5 @@
   "last_block": 69410361,
   "spent_mon": 0.408
  },
- "balance_after_mon": 3.844
+ "balance_after_mon": 2.783
 }
