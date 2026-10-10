@@ -22,18 +22,16 @@ with TestClient(app) as client:
     t0 = time.time()
     m = client.post("/mark", files={"file": (path.name, raw, "image/png")}).json()
     print(f"mark: id={m['watermark_id'][:14]}...  ({time.time()-t0:.1f}s)")
-    assert "image_png_base64" not in m, "the marked image must be withheld until the ID is on chain"
-    assert m["claim"], "mark must return a claim token"
 
     pk = SoftPasskey()
     ch = client.get("/challenge", params={"watermark_id": m["watermark_id"], "fingerprint": "0x" + m["fingerprint"]}).json()["challenge"]
     body = {"watermark_id": m["watermark_id"], "fingerprint": "0x" + m["fingerprint"],
-            "auth": pk.assert_challenge(ch), "qx": pk.qx, "qy": pk.qy, "claim": m["claim"]}
+            "auth": pk.assert_challenge(ch), "qx": pk.qx, "qy": pk.qy}
     r = client.post("/register", json=body)
     print("register:", r.status_code, {k: v for k, v in r.json().items() if k in ("tx_hash", "block", "gas_used", "gas_limit", "seconds", "signer", "detail")})
     assert r.status_code == 200, r.text
     # the marked image is revealed only now that the record is on chain
-    marked = base64.b64decode(r.json()["image_png_base64"])
+    marked = base64.b64decode(m["image_png_base64"])
 
     # shared copies: each should land on "verified", or at worst "likely_match" if the mark was lost
     img = Image.open(io.BytesIO(marked))

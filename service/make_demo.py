@@ -43,10 +43,10 @@ with TestClient(app) as client:
     pk = SoftPasskey("imprint-demo")
     ch = client.get("/challenge", params={"watermark_id": m["watermark_id"], "fingerprint": "0x" + m["fingerprint"]}).json()["challenge"]
     r = client.post("/register", json={"watermark_id": m["watermark_id"], "fingerprint": "0x" + m["fingerprint"],
-                                       "auth": pk.assert_challenge(ch), "qx": pk.qx, "qy": pk.qy, "claim": m["claim"]})
+                                       "auth": pk.assert_challenge(ch), "qx": pk.qx, "qy": pk.qy})
     assert r.status_code == 200, r.text
     print("registered:", r.json()["tx_hash"])
-    marked_bytes = base64.b64decode(r.json()["image_png_base64"])
+    marked_bytes = base64.b64decode(m["image_png_base64"])
 
     marked = Image.open(io.BytesIO(marked_bytes)).convert("RGB")
     (OUT / "demo-1-marked.png").write_bytes(marked_bytes)

@@ -14,6 +14,6 @@
     "status": "retired",
     "note": "First deployment, no registrations, no enumerable registry (count/recordsPage revert). Replaced because the new version lets anyone list every registration with plain calls (count, recordsPage) and records the block number. A stale page render may still show this address; it is not the current contract."
   },
-  "sourceCommit": "7e2ec49",
-  "note": "Source at this commit is what Sourcify verified. It already includes the recordsPage overflow clamp (commit 48f0c38, which predates this deployment). The on-chain dispute feature (contracts/src, commit 7b5a009 and later: disputeDuplicate, hammingDistance, isDisputed, disputeOf, DISPUTE_MAX_DISTANCE, RecordDisputed) is implemented and tested but NOT deployed to this address; cross-check with deploy/verify_deployment.py."
+  "sourceCommit": "962993c",
+  "note": "Sourcify's verified source for this address was fetched back on 2026-10-10 and is byte-identical to contracts/src at 962993c: enumeration (count, recordsPage, blockNumber) present; recordsPage overflow clamp (48f0c38) and on-chain disputes (7b5a009+) NOT deployed."
 }

@@ -4,7 +4,7 @@ Audit step "investigate the false rejections before changing thresholds". This
 document reports what was measured, why thresholds are **not** being changed,
 and the concrete, data-backed recommendation for relabelling -- not re-tuning.
 
-These are **real measurements from this repo, reproducible locally**:
+These are **real measurements from this repo, reproducible locally**, on the **synthetic** phase 2 corpus (gradients, noise, textures and the like). On the real-photo sets in `phase1/` the closest unrelated pair was 88 bits apart; the few-bit collisions below occur between flat synthetic images that are perceptually near-identical, which is the fingerprint behaving as designed rather than a flaw in the photo result.
 
 ```text
 python phase2/investigate.py --per-category 100   # fingerprint-only, minutes

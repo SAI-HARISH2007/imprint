@@ -13,7 +13,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 import chain
-import claims
 import core
 import fingerprint
 import limits
@@ -73,14 +72,6 @@ _successes = limits.Limiter(PER_IP_PER_HOUR, 3600, "registrations")
 _daily = limits.Limiter(GLOBAL_PER_DAY, 86400, "daily registrations")
 _heavy = limits.Limiter(HEAVY_PER_MIN, 60, "expensive requests")
 _busy = limits.ConcurrencyCap(MAX_BUSY)
-
-# A marked image is withheld until its ID is on chain, so nobody can read the
-# hidden ID from the file and register it first. See claims.py.
-_claims = claims.ClaimStore(
-    ttl=float(os.getenv("IMPRINT_CLAIM_TTL", str(claims.DEFAULT_TTL))),
-    max_items=int(os.getenv("IMPRINT_MAX_CLAIMS", str(claims.DEFAULT_MAX))),
-)
-
 
 def _ip(request: Request) -> str:
     peer = request.client.host if request.client else None
@@ -157,7 +148,6 @@ class RegisterBody(BaseModel):
     auth: Assertion
     qx: Annotated[str, Field(max_length=66)]
     qy: Annotated[str, Field(max_length=66)]
-    claim: Annotated[str, Field(max_length=200)] | None = None
 
     @field_validator("watermark_id", "fingerprint", "qx", "qy")
     @classmethod
@@ -184,7 +174,6 @@ def config():
         "registry_url": chain.explorer_address(chain.REGISTRY), "explorer": chain.EXPLORER,
         "fingerprint": {"algorithm": fingerprint.ALGORITHM, "version": fingerprint.VERSION,
                         "bits": fingerprint.BIT_LEN, "hex_length": fingerprint.HEX_LEN},
-        "claim_ttl_seconds": int(_claims.ttl),
         "thresholds": {"match": verdict.T_MATCH, "near": verdict.T_NEAR, "duplicate": verdict.T_DUP},
     }
 
@@ -240,37 +229,9 @@ def mark(request: Request, file: UploadFile = File(...)):
         try:
             out = core.mark(data)
             log.info("mark %dx%d strength=%s self_test=%s", out["width"], out["height"], out["strength"], out["self_test"])
-            claim = _claims.put(out["watermark_id"], out["fingerprint"], out.pop("image_png_base64"), ip=_ip(request))
-            out["claim"] = claim.token
-            out["claim_expires_in"] = int(_claims.ttl)
             return out
         except core.BadImage as e:
             raise HTTPException(400, str(e))
-
-
-@app.get("/claim")
-def claim(token: str):
-    """Reveal a marked image, but only once its ID is actually in the registry.
-
-    Before that, returning the pixels would let anyone read the hidden ID and
-    register it first. After the record lands the ID is public anyway."""
-    c = _claims.get(token)
-    if c is None:
-        raise HTTPException(404, "that claim is unknown or has expired; mark the image again")
-    try:
-        rec = chain.lookup(c.watermark_id)
-    except chain.BadInput as e:
-        raise HTTPException(422, str(e))
-    if rec is None:
-        raise HTTPException(409, {
-            "error": "not_registered",
-            "message": "The marked image is withheld until its ID is registered. "
-                       "Register it first, then try again.",
-        })
-    burned = _claims.take_by_id(c.watermark_id)
-    image = (burned or c).image_png_base64
-    return {"watermark_id": c.watermark_id, "fingerprint": c.fingerprint,
-            "image_png_base64": image, "record": _rec(rec)}
 
 
 @app.post("/check")
@@ -338,10 +299,6 @@ def register(body: RegisterBody, request: Request):
     rec = res.pop("record")
     out = {**res, "record": _rec(rec)}
     out["receipt"] = _build_receipt(rec, body.qx, body.qy, res.get("tx_hash", ""))
-    # Reveal the marked image now that the ID is on chain (see claims.py).
-    claimed = _claims.take(body.claim or "", body.watermark_id, body.fingerprint)
-    if claimed is not None:
-        out["image_png_base64"] = claimed.image_png_base64
     return out
 
 
