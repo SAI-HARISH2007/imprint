@@ -50,7 +50,9 @@ with image.imports():
     timeout=300,
     scaledown_window=600,
     min_containers=0,
-    enable_memory_snapshot=True,  # model and imports are restored from a snapshot, so cold starts are short
+    # Memory snapshots are off: measured cold start was 17 s without and 32 s with, and a restored snapshot
+    # kept serving stale service files after a redeploy.
+    enable_memory_snapshot=False,
 )
 @modal.concurrent(max_inputs=2)  # matches IMPRINT_MAX_BUSY; the watermark model is serialized anyway
 @modal.asgi_app()
