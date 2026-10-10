@@ -8,11 +8,12 @@ import secrets
 import threading
 from functools import lru_cache
 
-import imagehash
 from PIL import Image
 from trustmark import TrustMark
 
-HASH_SIZE = 16          # 16x16 pHash = 256 bits, 64 hex chars, fits a bytes32
+import fingerprint as fp
+
+HASH_SIZE = fp.HASH_SIZE  # 16x16 pHash = 256 bits, 64 hex chars, fits a bytes32
 MAX_PIXELS = 25_000_000
 
 
@@ -49,12 +50,12 @@ def bits_to_id(bits: str) -> str:
 
 
 def fingerprint(img: Image.Image) -> str:
-    """256-bit perceptual hash as 64 hex chars (no 0x)."""
-    return str(imagehash.phash(img, hash_size=HASH_SIZE))
+    """256-bit perceptual hash as 64 hex chars (no 0x). See fingerprint.py for the spec."""
+    return fp.compute(img)
 
 
 def distance(a: str, b: str) -> int:
-    return int(imagehash.hex_to_hash(a) - imagehash.hex_to_hash(b))
+    return fp.distance(a, b)
 
 
 STRENGTHS = (1.0, 1.5, 2.0)  # watermark strength tried in order; higher is sturdier but more visible

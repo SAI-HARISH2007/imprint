@@ -11,6 +11,8 @@ from pathlib import Path
 
 from web3 import Web3
 
+import fingerprint
+import index
 from verdict import Record
 
 RPC_URL = os.getenv("IMPRINT_RPC", "https://testnet-rpc.monad.xyz")
@@ -27,11 +29,21 @@ _contract = None
 # in-memory copy of the registry, filled with plain eth_calls (count + recordsPage), no log scan
 _records: dict[str, Record] = {}
 _next_index = 0
-_scan_lock = threading.Lock()
+_scan_lock = threading.RLock()
 _tx_cache: dict[str, str] = {}
 _count_cache: tuple[float, int] = (0.0, -1)
 COUNT_TTL = float(os.getenv("IMPRINT_COUNT_TTL", "10"))
 PAGE = 100
+
+# A BK-tree over the fingerprints already in _records, for near-duplicate search.
+# Measured (test_index.py, 5000 random 256-bit keys): the BK-tree is ~1.0x at
+# radius 10 and slower at radius 16/24, because a registry that rejects
+# near-duplicates is essentially spread out, leaving the tree nothing to prune.
+# So the linear scan stays the default and the tree is an opt-in A/B path
+# (IMPRINT_INDEX=1). It is kept correct and tested for when fingerprints cluster.
+INDEX_ENABLED = os.getenv("IMPRINT_INDEX", "0").strip().lower() in ("1", "true", "yes")
+_index = index.BKTree()
+_indexed_ids: set[str] = set()
 
 
 class RelayError(Exception):
@@ -162,6 +174,18 @@ def count(fresh: bool = False) -> int:
     return n
 
 
+def _index_record(r: Record) -> None:
+    """Add a record to the fingerprint index once. Caller holds nothing special."""
+    if not INDEX_ENABLED or r.watermark_id in _indexed_ids:
+        return
+    try:
+        fpi = fingerprint.from_hex(r.fingerprint)
+    except ValueError:
+        return
+    _index.add(fpi, r.watermark_id)
+    _indexed_ids.add(r.watermark_id)
+
+
 def refresh_index() -> None:
     """Pull any new registrations with plain contract calls. Works on any RPC, no indexer."""
     global _next_index
@@ -174,12 +198,31 @@ def refresh_index() -> None:
             for wid, tup in zip(ids, recs):
                 r = _to_record(wid, tup)
                 _records[r.watermark_id] = r
+                _index_record(r)
             _next_index += len(ids)
 
 
 def all_records() -> list[Record]:
     refresh_index()
     return sorted(_records.values(), key=lambda r: (r.timestamp, r.block))
+
+
+def near_records(fp_hex: str, threshold: int) -> list[Record]:
+    """Records whose fingerprint is within `threshold` bits of fp_hex.
+
+    Uses the BK-tree when enabled, otherwise every record (the caller then
+    filters). Correctness is identical either way: the tree only prunes
+    fingerprints that cannot be within the radius."""
+    refresh_index()
+    if not INDEX_ENABLED:
+        return all_records()
+    try:
+        key = fingerprint.from_hex(fp_hex)
+    except ValueError:
+        return []
+    with _scan_lock:
+        hits = _index.search(key, threshold)
+    return [_records[wid] for _, wid in hits if wid in _records]
 
 
 def recent_records(limit: int = 20) -> list[Record]:
@@ -282,7 +325,9 @@ def register_passkey(watermark_id: str, fingerprint_hex: str, auth: dict, qx: st
     if rec:
         rec.tx_hash = h
         _tx_cache[rec.watermark_id] = rec.tx_hash
-        _records[rec.watermark_id] = rec  # visible to readers now; the page index catches up on its own
+        with _scan_lock:
+            _records[rec.watermark_id] = rec  # visible to readers now; the page index catches up on its own
+            _index_record(rec)
     if rec is None:
         raise RelayError("the transaction confirmed but the record could not be read back")
     return _success(rec, h, int(receipt["gasUsed"]), int(tx["gas"]),

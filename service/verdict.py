@@ -6,7 +6,7 @@ Thresholds come from the phase 1 numbers (256-bit pHash):
 """
 from dataclasses import dataclass
 
-from core import distance
+from fingerprint import distance
 
 T_MATCH = 16   # watermark found: at or below this, the image is consistent with the registered one
 T_NEAR = 24    # watermark lost: at or below this, call it a likely copy

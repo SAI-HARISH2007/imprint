@@ -28,18 +28,42 @@ contract ImprintRegistry is EIP712 {
     bytes32 public constant REGISTER_TYPEHASH =
         keccak256("Register(bytes32 watermarkId,bytes32 fingerprint)");
 
+    /// @notice The largest fingerprint Hamming distance accepted as a duplicate dispute.
+    ///         10 bits matches the service's T_DUP guard. Anyone may dispute; the chain
+    ///         only checks the two records exist, are ordered, and are close enough.
+    uint256 public constant DISPUTE_MAX_DISTANCE = 10;
+
+    struct Dispute {
+        bytes32 earlier;   // the record that was registered first
+        bytes32 later;     // the record disputed as a look-alike
+        uint16 distance;   // fingerprint Hamming distance at dispute time
+        address by;        // who raised the dispute (a public good; gas only)
+        uint64 timestamp;  // block.timestamp of the dispute
+    }
+
     mapping(bytes32 => Record) private _records;
     bytes32[] private _ids; // every registered ID, in order, so anyone can enumerate the registry with plain calls
+
+    mapping(bytes32 => bytes32) private _disputedBy;      // later id -> earlier id (0 means not disputed)
+    mapping(bytes32 => Dispute) private _disputes;        // later id -> dispute details
 
     event Registered(
         bytes32 indexed watermarkId, address indexed signer, bytes32 fingerprint, uint64 timestamp
     );
     /// Emitted next to Registered for passkey registrations so verifiers can show the public key.
     event PasskeyUsed(address indexed signer, bytes32 qx, bytes32 qy);
+    /// Emitted when a record is publicly disputed as a near-duplicate of an earlier one.
+    event RecordDisputed(
+        bytes32 indexed earlier, bytes32 indexed later, uint256 distance, address indexed by, uint64 timestamp
+    );
 
     error ZeroId();
     error AlreadyRegistered(bytes32 watermarkId);
     error BadSignature();
+    error UnknownRecord(bytes32 watermarkId);
+    error NotEarlier(bytes32 earlier, bytes32 later);
+    error AlreadyDisputed(bytes32 later);
+    error NotSimilar(uint256 distance, uint256 maxDistance);
 
     constructor() EIP712("ImprintRegistry", "1") {}
 
@@ -73,7 +97,47 @@ contract ImprintRegistry is EIP712 {
         emit PasskeyUsed(signer, qx, qy);
     }
 
+    // ---------------------------------------------------------------- disputes
+
+    /// @notice Flag `laterId` as a near-duplicate of an `earlierId` registered before it.
+    ///         Permissionless and non-destructive: it neither deletes nor edits either record,
+    ///         it only records a public, queryable claim that they look alike. Many of these
+    ///         can be raised against one record, but each later id can be disputed once, so a
+    ///         single spammer cannot bury a record under repeated disputes. The contract does
+    ///         not try to settle authorship; it makes the closeness visible to everyone.
+    function disputeDuplicate(bytes32 earlierId, bytes32 laterId) external {
+        Record memory e = _records[earlierId];
+        Record memory l = _records[laterId];
+        if (e.timestamp == 0) revert UnknownRecord(earlierId);
+        if (l.timestamp == 0) revert UnknownRecord(laterId);
+        if (earlierId == laterId) revert NotEarlier(earlierId, laterId);
+        if (e.blockNumber >= l.blockNumber) revert NotEarlier(earlierId, laterId);
+        if (_disputedBy[laterId] != bytes32(0)) revert AlreadyDisputed(laterId);
+
+        uint256 d = hammingDistance(e.fingerprint, l.fingerprint);
+        if (d > DISPUTE_MAX_DISTANCE) revert NotSimilar(d, DISPUTE_MAX_DISTANCE);
+
+        _disputedBy[laterId] = earlierId;
+        _disputes[laterId] = Dispute(earlierId, laterId, uint16(d), msg.sender, uint64(block.timestamp));
+        emit RecordDisputed(earlierId, laterId, d, msg.sender, uint64(block.timestamp));
+    }
+
     // ---------------------------------------------------------------- views
+
+    /// @notice Hamming distance between two fingerprints (the 256-bit XOR popcount).
+    function hammingDistance(bytes32 a, bytes32 b) public pure returns (uint256) {
+        uint256 x = uint256(a ^ b);
+        return uint256(_popcount64(uint64(x))) + uint256(_popcount64(uint64(x >> 64)))
+            + uint256(_popcount64(uint64(x >> 128))) + uint256(_popcount64(uint64(x >> 192)));
+    }
+
+    function isDisputed(bytes32 watermarkId) external view returns (bool) {
+        return _disputedBy[watermarkId] != bytes32(0);
+    }
+
+    function disputeOf(bytes32 watermarkId) external view returns (Dispute memory) {
+        return _disputes[watermarkId];
+    }
 
     function recordOf(bytes32 watermarkId) external view returns (Record memory) {
         return _records[watermarkId];
@@ -117,6 +181,17 @@ contract ImprintRegistry is EIP712 {
     }
 
     // ---------------------------------------------------------------- internals
+
+    /// @dev Population count of a 64-bit word (Hacker's Delight, SWAR). The shifts and the
+    ///      final multiply rely on wrapping 64-bit arithmetic, so they run unchecked.
+    function _popcount64(uint64 x) private pure returns (uint64) {
+        unchecked {
+            x = x - ((x >> 1) & 0x5555555555555555);
+            x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333);
+            x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f;
+            return (x * 0x0101010101010101) >> 56;
+        }
+    }
 
     function _store(bytes32 watermarkId, bytes32 fingerprint, address signer) private {
         if (watermarkId == bytes32(0)) revert ZeroId();

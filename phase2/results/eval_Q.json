@@ -1,0 +1,730 @@
+{
+ "mode": "watermark+fingerprint",
+ "model": "Q",
+ "per_category": 2,
+ "thresholds": {
+  "match": 16,
+  "near": 24,
+  "duplicate": 10
+ },
+ "leak_guard": "passed (disjoint seed banks + content-hash check)",
+ "sets": {
+  "calibration": {
+   "n_images": 14,
+   "per_transform": {
+    "identity": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 14
+     },
+     "median_dist": 0.0,
+     "max_dist": 0
+    },
+    "png_to_jpeg_q95": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 11,
+      "altered": 3
+     },
+     "median_dist": 10.0,
+     "max_dist": 36
+    },
+    "jpeg_q90": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 9,
+      "altered": 5
+     },
+     "median_dist": 12.0,
+     "max_dist": 42
+    },
+    "jpeg_q70": {
+     "decode_rate": 0.9285714285714286,
+     "verdicts": {
+      "altered": 7,
+      "not_found": 1,
+      "verified": 6
+     },
+     "median_dist": 18.0,
+     "max_dist": 58
+    },
+    "jpeg_q50": {
+     "decode_rate": 0.7857142857142857,
+     "verdicts": {
+      "altered": 8,
+      "not_found": 2,
+      "verified": 3,
+      "likely_match": 1
+     },
+     "median_dist": 28.0,
+     "max_dist": 78
+    },
+    "jpeg_q30": {
+     "decode_rate": 0.5714285714285714,
+     "verdicts": {
+      "not_found": 4,
+      "altered": 6,
+      "likely_match": 2,
+      "verified": 2
+     },
+     "median_dist": 28.0,
+     "max_dist": 88
+    },
+    "jpeg_q20": {
+     "decode_rate": 0.35714285714285715,
+     "verdicts": {
+      "not_found": 6,
+      "altered": 4,
+      "verified": 1,
+      "likely_match": 3
+     },
+     "median_dist": 35.0,
+     "max_dist": 110
+    },
+    "resize_75": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 10,
+      "altered": 4
+     },
+     "median_dist": 13.0,
+     "max_dist": 40
+    },
+    "resize_50": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 9,
+      "altered": 5
+     },
+     "median_dist": 16.0,
+     "max_dist": 36
+    },
+    "resize_25": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 8,
+      "altered": 6
+     },
+     "median_dist": 16.0,
+     "max_dist": 48
+    },
+    "messenger": {
+     "decode_rate": 0.9285714285714286,
+     "verdicts": {
+      "altered": 7,
+      "not_found": 1,
+      "verified": 6
+     },
+     "median_dist": 18.0,
+     "max_dist": 58
+    },
+    "screenshot_like": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 8,
+      "verified": 6
+     },
+     "median_dist": 23.0,
+     "max_dist": 52
+    },
+    "crop_5": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 14
+     },
+     "median_dist": 44.0,
+     "max_dist": 154
+    },
+    "crop_15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 14
+     },
+     "median_dist": 107.0,
+     "max_dist": 136
+    },
+    "crop_30": {
+     "decode_rate": 0.0,
+     "verdicts": {
+      "not_found": 14
+     },
+     "median_dist": 119.0,
+     "max_dist": 146
+    },
+    "brightness_p15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 6,
+      "verified": 8
+     },
+     "median_dist": 13.0,
+     "max_dist": 68
+    },
+    "brightness_m15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 9,
+      "verified": 5
+     },
+     "median_dist": 21.0,
+     "max_dist": 66
+    },
+    "contrast_p15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 7,
+      "altered": 7
+     },
+     "median_dist": 20.0,
+     "max_dist": 54
+    },
+    "blur_light": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 12,
+      "altered": 2
+     },
+     "median_dist": 5.0,
+     "max_dist": 40
+    },
+    "edit_paste_10pct": {
+     "decode_rate": 0.7857142857142857,
+     "verdicts": {
+      "altered": 11,
+      "not_found": 3
+     },
+     "median_dist": 90.0,
+     "max_dist": 132
+    },
+    "edit_paste_25pct": {
+     "decode_rate": 0.0,
+     "verdicts": {
+      "not_found": 14
+     },
+     "median_dist": 105.0,
+     "max_dist": 126
+    }
+   },
+   "per_image": {
+    "calibration_gradient_00": {
+     "category": "gradient",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 28,
+     "wrongly_altered": 3
+    },
+    "calibration_gradient_01": {
+     "category": "gradient",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 36,
+     "wrongly_altered": 6
+    },
+    "calibration_lowcontrast_00": {
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 78,
+     "wrongly_altered": 4
+    },
+    "calibration_lowcontrast_01": {
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.5,
+     "max_normal_dist": 60,
+     "wrongly_altered": 1
+    },
+    "calibration_symmetry_00": {
+     "category": "symmetry",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 34,
+     "wrongly_altered": 3
+    },
+    "calibration_symmetry_01": {
+     "category": "symmetry",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 32,
+     "wrongly_altered": 4
+    },
+    "calibration_noise_00": {
+     "category": "noise",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 18,
+     "wrongly_altered": 1
+    },
+    "calibration_noise_01": {
+     "category": "noise",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 26,
+     "wrongly_altered": 2
+    },
+    "calibration_shapes_00": {
+     "category": "shapes",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 4,
+     "wrongly_altered": 0
+    },
+    "calibration_shapes_01": {
+     "category": "shapes",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 2,
+     "wrongly_altered": 0
+    },
+    "calibration_texture_00": {
+     "category": "texture",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 64,
+     "wrongly_altered": 6
+    },
+    "calibration_texture_01": {
+     "category": "texture",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 46,
+     "wrongly_altered": 6
+    },
+    "calibration_portraitish_00": {
+     "category": "portraitish",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 2,
+     "wrongly_altered": 0
+    },
+    "calibration_portraitish_01": {
+     "category": "portraitish",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 2,
+     "wrongly_altered": 0
+    }
+   },
+   "weakest_images": [
+    {
+     "image": "calibration_lowcontrast_01",
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.5,
+     "max_normal_dist": 60,
+     "wrongly_altered": 1
+    },
+    {
+     "image": "calibration_lowcontrast_00",
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 78,
+     "wrongly_altered": 4
+    },
+    {
+     "image": "calibration_shapes_01",
+     "category": "shapes",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 2,
+     "wrongly_altered": 0
+    },
+    {
+     "image": "calibration_texture_00",
+     "category": "texture",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 64,
+     "wrongly_altered": 6
+    },
+    {
+     "image": "calibration_texture_01",
+     "category": "texture",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 46,
+     "wrongly_altered": 6
+    }
+   ],
+   "normal_sharing_mean_decode": 0.9404761904761905,
+   "sharing_wrongly_altered": 36,
+   "sharing_checks": 84,
+   "edits_wrongly_verified": 0,
+   "edit_checks": 70,
+   "unrelated_pairs": 91,
+   "unrelated_min_dist": 100,
+   "false_likely_match_pairs": 0,
+   "false_duplicate_pairs": 0,
+   "per_category_unrelated": {
+    "gradient": {
+     "min_unrelated_dist": 100,
+     "median_unrelated_dist": 100
+    },
+    "lowcontrast": {
+     "min_unrelated_dist": 108,
+     "median_unrelated_dist": 108
+    },
+    "symmetry": {
+     "min_unrelated_dist": 124,
+     "median_unrelated_dist": 124
+    },
+    "noise": {
+     "min_unrelated_dist": 118,
+     "median_unrelated_dist": 118
+    },
+    "shapes": {
+     "min_unrelated_dist": 122,
+     "median_unrelated_dist": 122
+    },
+    "texture": {
+     "min_unrelated_dist": 126,
+     "median_unrelated_dist": 126
+    },
+    "portraitish": {
+     "min_unrelated_dist": 120,
+     "median_unrelated_dist": 120
+    }
+   }
+  },
+  "heldout": {
+   "n_images": 14,
+   "per_transform": {
+    "identity": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 14
+     },
+     "median_dist": 0.0,
+     "max_dist": 0
+    },
+    "png_to_jpeg_q95": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 10,
+      "altered": 4
+     },
+     "median_dist": 10.0,
+     "max_dist": 22
+    },
+    "jpeg_q90": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 8,
+      "altered": 6
+     },
+     "median_dist": 14.0,
+     "max_dist": 28
+    },
+    "jpeg_q70": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 10,
+      "verified": 4
+     },
+     "median_dist": 24.0,
+     "max_dist": 62
+    },
+    "jpeg_q50": {
+     "decode_rate": 0.7142857142857143,
+     "verdicts": {
+      "altered": 6,
+      "not_found": 4,
+      "verified": 4
+     },
+     "median_dist": 25.0,
+     "max_dist": 76
+    },
+    "jpeg_q30": {
+     "decode_rate": 0.35714285714285715,
+     "verdicts": {
+      "not_found": 5,
+      "likely_match": 4,
+      "altered": 4,
+      "verified": 1
+     },
+     "median_dist": 29.0,
+     "max_dist": 80
+    },
+    "jpeg_q20": {
+     "decode_rate": 0.14285714285714285,
+     "verdicts": {
+      "not_found": 8,
+      "altered": 2,
+      "likely_match": 4
+     },
+     "median_dist": 45.0,
+     "max_dist": 102
+    },
+    "resize_75": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 10,
+      "altered": 4
+     },
+     "median_dist": 13.0,
+     "max_dist": 22
+    },
+    "resize_50": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 8,
+      "altered": 6
+     },
+     "median_dist": 15.0,
+     "max_dist": 26
+    },
+    "resize_25": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 9,
+      "verified": 5
+     },
+     "median_dist": 23.0,
+     "max_dist": 46
+    },
+    "messenger": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 10,
+      "verified": 4
+     },
+     "median_dist": 24.0,
+     "max_dist": 62
+    },
+    "screenshot_like": {
+     "decode_rate": 0.9285714285714286,
+     "verdicts": {
+      "altered": 8,
+      "not_found": 1,
+      "verified": 5
+     },
+     "median_dist": 26.0,
+     "max_dist": 44
+    },
+    "crop_5": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 14
+     },
+     "median_dist": 53.0,
+     "max_dist": 132
+    },
+    "crop_15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 14
+     },
+     "median_dist": 110.0,
+     "max_dist": 150
+    },
+    "crop_30": {
+     "decode_rate": 0.0,
+     "verdicts": {
+      "not_found": 14
+     },
+     "median_dist": 119.0,
+     "max_dist": 134
+    },
+    "brightness_p15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "altered": 6,
+      "verified": 8
+     },
+     "median_dist": 14.0,
+     "max_dist": 44
+    },
+    "brightness_m15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 7,
+      "altered": 7
+     },
+     "median_dist": 20.0,
+     "max_dist": 50
+    },
+    "contrast_p15": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 8,
+      "altered": 6
+     },
+     "median_dist": 16.0,
+     "max_dist": 46
+    },
+    "blur_light": {
+     "decode_rate": 1.0,
+     "verdicts": {
+      "verified": 11,
+      "altered": 3
+     },
+     "median_dist": 5.0,
+     "max_dist": 26
+    },
+    "edit_paste_10pct": {
+     "decode_rate": 0.6428571428571429,
+     "verdicts": {
+      "altered": 9,
+      "not_found": 5
+     },
+     "median_dist": 77.0,
+     "max_dist": 132
+    },
+    "edit_paste_25pct": {
+     "decode_rate": 0.07142857142857142,
+     "verdicts": {
+      "not_found": 13,
+      "altered": 1
+     },
+     "median_dist": 89.0,
+     "max_dist": 118
+    }
+   },
+   "per_image": {
+    "heldout_gradient_00": {
+     "category": "gradient",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 30,
+     "wrongly_altered": 3
+    },
+    "heldout_gradient_01": {
+     "category": "gradient",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 28,
+     "wrongly_altered": 6
+    },
+    "heldout_lowcontrast_00": {
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 76,
+     "wrongly_altered": 5
+    },
+    "heldout_lowcontrast_01": {
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 68,
+     "wrongly_altered": 4
+    },
+    "heldout_symmetry_00": {
+     "category": "symmetry",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 58,
+     "wrongly_altered": 5
+    },
+    "heldout_symmetry_01": {
+     "category": "symmetry",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 36,
+     "wrongly_altered": 3
+    },
+    "heldout_noise_00": {
+     "category": "noise",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 24,
+     "wrongly_altered": 3
+    },
+    "heldout_noise_01": {
+     "category": "noise",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 18,
+     "wrongly_altered": 3
+    },
+    "heldout_shapes_00": {
+     "category": "shapes",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 2,
+     "wrongly_altered": 0
+    },
+    "heldout_shapes_01": {
+     "category": "shapes",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 2,
+     "wrongly_altered": 0
+    },
+    "heldout_texture_00": {
+     "category": "texture",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 26,
+     "wrongly_altered": 4
+    },
+    "heldout_texture_01": {
+     "category": "texture",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 44,
+     "wrongly_altered": 6
+    },
+    "heldout_portraitish_00": {
+     "category": "portraitish",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 2,
+     "wrongly_altered": 0
+    },
+    "heldout_portraitish_01": {
+     "category": "portraitish",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 4,
+     "wrongly_altered": 0
+    }
+   },
+   "weakest_images": [
+    {
+     "image": "heldout_lowcontrast_00",
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 76,
+     "wrongly_altered": 5
+    },
+    {
+     "image": "heldout_lowcontrast_01",
+     "category": "lowcontrast",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 68,
+     "wrongly_altered": 4
+    },
+    {
+     "image": "heldout_symmetry_00",
+     "category": "symmetry",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 58,
+     "wrongly_altered": 5
+    },
+    {
+     "image": "heldout_texture_00",
+     "category": "texture",
+     "normal_decode_rate": 0.8333333333333334,
+     "max_normal_dist": 26,
+     "wrongly_altered": 4
+    },
+    {
+     "image": "heldout_texture_01",
+     "category": "texture",
+     "normal_decode_rate": 1.0,
+     "max_normal_dist": 44,
+     "wrongly_altered": 6
+    }
+   ],
+   "normal_sharing_mean_decode": 0.9523809523809523,
+   "sharing_wrongly_altered": 42,
+   "sharing_checks": 84,
+   "edits_wrongly_verified": 0,
+   "edit_checks": 70,
+   "unrelated_pairs": 91,
+   "unrelated_min_dist": 100,
+   "false_likely_match_pairs": 0,
+   "false_duplicate_pairs": 0,
+   "per_category_unrelated": {
+    "gradient": {
+     "min_unrelated_dist": 116,
+     "median_unrelated_dist": 116
+    },
+    "lowcontrast": {
+     "min_unrelated_dist": 100,
+     "median_unrelated_dist": 100
+    },
+    "symmetry": {
+     "min_unrelated_dist": 126,
+     "median_unrelated_dist": 126
+    },
+    "noise": {
+     "min_unrelated_dist": 116,
+     "median_unrelated_dist": 116
+    },
+    "shapes": {
+     "min_unrelated_dist": 120,
+     "median_unrelated_dist": 120
+    },
+    "texture": {
+     "min_unrelated_dist": 154,
+     "median_unrelated_dist": 154
+    },
+    "portraitish": {
+     "min_unrelated_dist": 134,
+     "median_unrelated_dist": 134
+    }
+   }
+  }
+ },
+ "cross_split_unrelated_min_dist": 68
+}

@@ -13,7 +13,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 import chain
+import claims
 import core
+import fingerprint
 import limits
 import receipt as receipts
 import stress
@@ -49,6 +51,12 @@ app.add_middleware(
 
 log = logging.getLogger("uvicorn.error")
 
+if "*" in _cors_origins():
+    log.warning(
+        "IMPRINT_CORS_ORIGINS is '*' (any website may call this API). Set it to your "
+        "frontend origin(s) for a public deployment."
+    )
+
 
 # ---------------------------------------------------------------- limits
 # Registration attempts cost an RPC round-trip; successful registrations cost
@@ -65,6 +73,13 @@ _successes = limits.Limiter(PER_IP_PER_HOUR, 3600, "registrations")
 _daily = limits.Limiter(GLOBAL_PER_DAY, 86400, "daily registrations")
 _heavy = limits.Limiter(HEAVY_PER_MIN, 60, "expensive requests")
 _busy = limits.ConcurrencyCap(MAX_BUSY)
+
+# A marked image is withheld until its ID is on chain, so nobody can read the
+# hidden ID from the file and register it first. See claims.py.
+_claims = claims.ClaimStore(
+    ttl=float(os.getenv("IMPRINT_CLAIM_TTL", str(claims.DEFAULT_TTL))),
+    max_items=int(os.getenv("IMPRINT_MAX_CLAIMS", str(claims.DEFAULT_MAX))),
+)
 
 
 def _ip(request: Request) -> str:
@@ -142,6 +157,7 @@ class RegisterBody(BaseModel):
     auth: Assertion
     qx: Annotated[str, Field(max_length=66)]
     qy: Annotated[str, Field(max_length=66)]
+    claim: Annotated[str, Field(max_length=200)] | None = None
 
     @field_validator("watermark_id", "fingerprint", "qx", "qy")
     @classmethod
@@ -166,6 +182,9 @@ def config():
     return {
         "chain_id": chain.CHAIN_ID, "registry": chain.REGISTRY,
         "registry_url": chain.explorer_address(chain.REGISTRY), "explorer": chain.EXPLORER,
+        "fingerprint": {"algorithm": fingerprint.ALGORITHM, "version": fingerprint.VERSION,
+                        "bits": fingerprint.BIT_LEN, "hex_length": fingerprint.HEX_LEN},
+        "claim_ttl_seconds": int(_claims.ttl),
         "thresholds": {"match": verdict.T_MATCH, "near": verdict.T_NEAR, "duplicate": verdict.T_DUP},
     }
 
@@ -201,7 +220,8 @@ def status():
         rel["configured"] = True
         rel["address"] = acct.address
         bal = int(chain.w3().eth.get_balance(acct.address))
-        rel["balance_wei"] = str(bal)
+        if os.getenv("IMPRINT_STATUS_SHOW_BALANCE", "").lower() in ("1", "true", "yes"):
+            rel["balance_wei"] = str(bal)
         rel["low"] = bal < int(os.getenv("IMPRINT_LOW_BALANCE_WEI", str(5 * 10**17)))
     except chain.RelayError:
         pass
@@ -220,9 +240,37 @@ def mark(request: Request, file: UploadFile = File(...)):
         try:
             out = core.mark(data)
             log.info("mark %dx%d strength=%s self_test=%s", out["width"], out["height"], out["strength"], out["self_test"])
+            claim = _claims.put(out["watermark_id"], out["fingerprint"], out.pop("image_png_base64"), ip=_ip(request))
+            out["claim"] = claim.token
+            out["claim_expires_in"] = int(_claims.ttl)
             return out
         except core.BadImage as e:
             raise HTTPException(400, str(e))
+
+
+@app.get("/claim")
+def claim(token: str):
+    """Reveal a marked image, but only once its ID is actually in the registry.
+
+    Before that, returning the pixels would let anyone read the hidden ID and
+    register it first. After the record lands the ID is public anyway."""
+    c = _claims.get(token)
+    if c is None:
+        raise HTTPException(404, "that claim is unknown or has expired; mark the image again")
+    try:
+        rec = chain.lookup(c.watermark_id)
+    except chain.BadInput as e:
+        raise HTTPException(422, str(e))
+    if rec is None:
+        raise HTTPException(409, {
+            "error": "not_registered",
+            "message": "The marked image is withheld until its ID is registered. "
+                       "Register it first, then try again.",
+        })
+    burned = _claims.take_by_id(c.watermark_id)
+    image = (burned or c).image_png_base64
+    return {"watermark_id": c.watermark_id, "fingerprint": c.fingerprint,
+            "image_png_base64": image, "record": _rec(rec)}
 
 
 @app.post("/check")
@@ -263,7 +311,7 @@ def register(body: RegisterBody, request: Request):
     # Re-registering your own image with your own passkey is allowed.
     # (Checked before the gas quota so a refused duplicate does not use up the visitor's quota.)
     me = chain.passkey_signer(body.qx, body.qy).lower()
-    others = [r for r in chain.all_records() if r.signer.lower() != me]
+    others = [r for r in chain.near_records(body.fingerprint, verdict.T_DUP) if r.signer.lower() != me]
     lookalike = verdict.find_near_duplicate(body.fingerprint, others)
     if lookalike:
         rec, d = lookalike
@@ -290,6 +338,10 @@ def register(body: RegisterBody, request: Request):
     rec = res.pop("record")
     out = {**res, "record": _rec(rec)}
     out["receipt"] = _build_receipt(rec, body.qx, body.qy, res.get("tx_hash", ""))
+    # Reveal the marked image now that the ID is on chain (see claims.py).
+    claimed = _claims.take(body.claim or "", body.watermark_id, body.fingerprint)
+    if claimed is not None:
+        out["image_png_base64"] = claimed.image_png_base64
     return out
 
 
@@ -315,7 +367,7 @@ def verify(request: Request, file: UploadFile = File(...)):
             seen = core.read(data)
         except core.BadImage as e:
             raise HTTPException(400, str(e))
-        records = chain.all_records()
+        records = chain.near_records(seen["fingerprint"], verdict.T_NEAR)
         rec = chain.lookup(seen["watermark_id"]) if seen["watermark_present"] else None
         v = verdict.decide(seen["watermark_present"], seen["watermark_id"], seen["fingerprint"], rec, records)
         if v["record"] is not None and not v["record"].tx_hash:
@@ -323,7 +375,7 @@ def verify(request: Request, file: UploadFile = File(...)):
         return {
             "verdict": v["verdict"], "message": v["message"], "distance": v["distance"],
             "watermark_present": seen["watermark_present"], "watermark_id": seen["watermark_id"],
-            "fingerprint": seen["fingerprint"],
+            "fingerprint": seen["fingerprint"], "algorithm": fingerprint.ALGORITHM,
             "record": _rec(v["record"]), "earlier": _rec(v.get("earlier")),
             "registry": {"address": chain.REGISTRY, "chain_id": chain.CHAIN_ID,
                          "url": chain.explorer_address(chain.REGISTRY)},

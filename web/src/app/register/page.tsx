@@ -25,6 +25,7 @@ export default function RegisterPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [marked, setMarked] = useState<MarkResult | null>(null);
+  const [markedImage, setMarkedImage] = useState<string | null>(null);
   const [result, setResult] = useState<RegisterResult | null>(null);
   const [passkey, setPasskey] = useState<StoredPasskey | null>(null);
   const [unsupported, setUnsupported] = useState<string | null>(null);
@@ -43,6 +44,7 @@ export default function RegisterPage() {
     setFile(null);
     setPreview(null);
     setMarked(null);
+    setMarkedImage(null);
     setResult(null);
   }
 
@@ -70,11 +72,15 @@ export default function RegisterPage() {
         auth,
         qx: pk.qx,
         qy: pk.qy,
+        claim: m.claim,
       });
       setResult(res);
       const outName = f.name.replace(/\.[^.]+$/, "") + "-imprint.png";
-      saveMarked(m.image_png_base64, outName);
-      await keepMarked(m.watermark_id, b64ToBlob(m.image_png_base64), outName);
+      if (res.image_png_base64) {
+        setMarkedImage(res.image_png_base64);
+        saveMarked(res.image_png_base64, outName);
+        await keepMarked(m.watermark_id, b64ToBlob(res.image_png_base64), outName);
+      }
       setPhase("done");
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
@@ -110,8 +116,15 @@ export default function RegisterPage() {
         receipt: null,
       });
       const outName = file ? file.name.replace(/\.[^.]+$/, "") + "-imprint.png" : "imprint.png";
-      saveMarked(marked.image_png_base64, outName);
-      await keepMarked(marked.watermark_id, b64ToBlob(marked.image_png_base64), outName);
+      try {
+        // The image was withheld until the ID landed; now it is on chain, redeem the claim.
+        const c = await api.claim(marked.claim);
+        setMarkedImage(c.image_png_base64);
+        saveMarked(c.image_png_base64, outName);
+        await keepMarked(marked.watermark_id, b64ToBlob(c.image_png_base64), outName);
+      } catch {
+        // The claim expired, or was already redeemed. The record is still registered.
+      }
       setPhase("done");
     } catch {
       setError("Still not on Monad. The registration did not go through; try again.");
@@ -129,7 +142,7 @@ export default function RegisterPage() {
     URL.revokeObjectURL(url);
   }
 
-  const downloadHref = marked ? `data:image/png;base64,${marked.image_png_base64}` : undefined;
+  const downloadHref = markedImage ? `data:image/png;base64,${markedImage}` : undefined;
   const outName = file ? file.name.replace(/\.[^.]+$/, "") + "-imprint.png" : "imprint.png";
   const busy = phase === "marking" || phase === "signing" || phase === "confirming";
   const canCheckStatus = phase === "error" && !!marked && !!file;
@@ -227,18 +240,27 @@ export default function RegisterPage() {
               </div>
             </div>
             <div className="grid gap-6 p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`data:image/png;base64,${marked.image_png_base64}`}
-                alt="Your marked image"
-                className="max-h-72 w-auto rounded-lg"
-              />
+              {markedImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`data:image/png;base64,${markedImage}`}
+                  alt="Your marked image"
+                  className="max-h-72 w-auto rounded-lg"
+                />
+              ) : (
+                <p className="self-center text-sm text-ink2">
+                  The marked image is no longer available in this browser session. Register the same file again to
+                  recover a marked copy.
+                </p>
+              )}
               {result.record && <RecordFacts r={result.record} />}
             </div>
             <div className="flex flex-wrap gap-3 border-t border-line p-6">
-              <a className={btnPrimary} href={downloadHref} download={outName}>
-                Download marked image
-              </a>
+              {downloadHref && (
+                <a className={btnPrimary} href={downloadHref} download={outName}>
+                  Download marked image
+                </a>
+              )}
               <Link className={btnAccent} href="/stress">
                 Run the stress test on it
               </Link>

@@ -16,8 +16,13 @@ from web3 import Web3
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
+from fingerprint import ALGORITHM as FINGERPRINT_ALGO
+
 VERSION = 1
 _HEX32 = set("0123456789abcdef")
+# Receipts written before the field existed used this algorithm; treat a
+# missing field as v1 so old receipts stay interpretable.
+LEGACY_FINGERPRINT_ALGO = "phash-dct-16x16-v1"
 
 
 def canonical(receipt: dict) -> bytes:
@@ -33,6 +38,7 @@ def build(rec, qx: str | None, qy: str | None, chain_id: int, registry: str, tx_
         "registry": Web3.to_checksum_address(registry),
         "watermark_id": rec.watermark_id.lower(),
         "fingerprint": "0x" + rec.fingerprint.lower(),
+        "fingerprint_algo": FINGERPRINT_ALGO,
         "signer": rec.signer,
         "timestamp": int(rec.timestamp),
         "block": int(rec.block),
@@ -81,6 +87,10 @@ def verify(receipt, chain, expected_relayer: str | None) -> dict:
     )
     if not check("format", fmt, "version and field types"):
         return {"valid": False, "checks": checks, "record": None}
+
+    algo = receipt.get("fingerprint_algo", LEGACY_FINGERPRINT_ALGO)
+    check("fingerprint_algo", algo in (FINGERPRINT_ALGO, LEGACY_FINGERPRINT_ALGO),
+          "fingerprint was computed with a supported algorithm version")
 
     registry_ok = False
     try:
