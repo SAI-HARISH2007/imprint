@@ -12,7 +12,7 @@ Built for the Monad Metropolis hackathon, Track 4 (Trust, Identity and AI Infras
 
 Imprint proves that **a particular passkey registered this image at a particular time**, and whether a copy you hold is **still consistent with what was registered**.
 
-It does **not** prove who made the image, that the image is real, or that it was never edited somewhere else. Anyone can register an image they did not make, so Imprint refuses to register an image that looks like one already on record by someone else, and the checker flags a later look-alike as *disputed*. **"Not found" means no record, not that the image is fake.** Imprint does not detect AI-generated content.
+It does **not** prove who made the image, that the image is real, or that it was never edited somewhere else. It is not a copyright registration: copyright exists when a work is made, and no registry grants or transfers it. An Imprint record is evidence of a timestamped, signed registration, nothing more. Register only images you made or have the right to register; records are public and permanent, though the image itself is never stored. Anyone can register an image they did not make, so Imprint refuses to register an image that looks like one already on record by someone else, and the checker flags a later look-alike as *disputed*. **"Not found" means no record, not that the image is fake.** Imprint does not detect AI-generated content.
 
 ## How it works
 

@@ -146,6 +146,13 @@ export default function RegisterPage() {
 
       {unsupported && <p className="rounded-xl bg-warnbg p-4 text-sm text-warn">{unsupported}</p>}
 
+      <p className="rounded-xl border border-line bg-paper2 p-4 text-xs leading-relaxed text-ink2">
+        Register only images you made or have the right to register. The record (an ID, a fingerprint of how the
+        image looks, your passkey&rsquo;s address and the time) is public and permanent on Monad; the image itself is
+        not stored. A record is evidence that you registered the image at that time. It is not a copyright
+        registration and does not grant or prove ownership.
+      </p>
+
       {(phase === "idle" || phase === "error") && (
         <Dropzone onFile={run} disabled={!!unsupported}>
           <p className="text-xs text-ink2">
